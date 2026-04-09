@@ -224,11 +224,11 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
 
         if (parent_node.get_real_g() + last_op.get_cost() >= bound)
             continue;
-
-         State state = state_registry.get_successor_state(parent_state, last_op);
-         StateID state_id = state.get_id();
+        
+        State state = state_registry.get_successor_state(parent_state, last_op);
+        StateID state_id = state.get_id();
          
-         if (dead_end_list.find(state_id) != dead_end_list.end()) // prune via the dead ends
+        if (dead_end_list.find(state_id) != dead_end_list.end()) // prune via the dead ends
             continue;
 
         if (!global_closed_list) { // if local list
@@ -242,7 +242,14 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
         if (global_closed_list && !node.is_new())
             continue;
 
-        EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
+        //EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
+        EvaluationContext eval_context(state, parent_node.get_g() + get_adjusted_cost(last_op), false, &statistics);
+
+        if (lazy_evaluation) {
+            // lazy: evaluate heuristic now
+            eval_context.get_evaluator_value(evaluator.get());
+        }
+        // Non-lazy: already evaluated at insertion so we should do nothing because eval is already cached
         reach_state(parent_state, last_op_id, state);
         statistics.inc_evaluated_states();
 
