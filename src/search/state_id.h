@@ -15,7 +15,7 @@ class StateID {
     friend class PerStateArray;
     friend class PerStateBitset;
 
-    int value;
+    public: int value; // the value is set to public so unordered set works
     explicit StateID(int value_) : value(value_) {
     }
 
@@ -34,6 +34,19 @@ public:
     bool operator!=(const StateID &other) const {
         return !(*this == other);
     }
+    
+    bool operator<(const StateID &other) const { // had to add because std::state needs the < operator when using find and insert when navigating the tree
+        return value < other.value; 
+    }
 };
+
+namespace std {
+template<>
+struct hash<StateID> {
+    size_t operator()(const StateID &id) const {
+        return std::hash<int>()(id.value);
+    }
+};
+}
 
 #endif

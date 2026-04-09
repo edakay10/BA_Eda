@@ -7,8 +7,8 @@
 
 #include <map>
 #include <memory>
-#include <set>
 #include <utility>
+#include <set>
 #include <vector>
 
 namespace plugins {
@@ -29,8 +29,15 @@ enum class PreferredUsage {
   the same states anyways.
 */
 class EnforcedHillClimbingSearch : public SearchAlgorithm {
-    std::unique_ptr<EdgeOpenList> open_list;
+    std::unique_ptr<EdgeOpenList> open_list; // state or edge open list for lazy and non lazy
+    
+    // Adding on/off toggle for the two main differences between FF and FD
+    std::unordered_set<StateID> local_closed_list; // Local closed list (cleared each phase)
+    std::unordered_set<StateID> dead_end_list;     // Dead-end states
 
+    bool lazy_evaluation;
+    bool global_closed_list;
+  
     std::shared_ptr<Evaluator> evaluator;
     std::vector<std::shared_ptr<Evaluator>> preferred_operator_evaluators;
     std::set<Evaluator *> path_dependent_evaluators;
@@ -60,8 +67,9 @@ public:
     EnforcedHillClimbingSearch(
         const std::shared_ptr<Evaluator> &h, PreferredUsage preferred_usage,
         const std::vector<std::shared_ptr<Evaluator>> &preferred,
+        bool lazy, bool global_closed, // Added for the on/off toggle
         OperatorCost cost_type, int bound, double max_time,
-        const std::string &description, utils::Verbosity verbosity);
+        const std::string &description, utils::Verbosity verbosity); 
 
     virtual void print_statistics() const override;
 };

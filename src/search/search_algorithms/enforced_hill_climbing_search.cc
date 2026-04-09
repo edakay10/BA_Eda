@@ -33,14 +33,14 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
         return make_shared<standard_scalar_open_list::BestFirstOpenListFactory>(
             g_evaluator, false);
     } else {
-        /*
-          TODO: Reduce code duplication with search_common.cc,
-          function create_astar_open_list_factory_and_f_eval.
+          /*
+            TODO: Reduce code duplication with search_common.cc,
+            function create_astar_open_list_factory_and_f_eval.
 
-          It would probably make sense to add a factory function or
-          constructor that encapsulates this work to the tie-breaking
-          open list code.
-        */
+            It would probably make sense to add a factory function or
+            constructor that encapsulates this work to the tie-breaking
+            open list code.
+          */
         vector<shared_ptr<Evaluator>> evals = {
             g_evaluator, make_shared<PrefEval>("ehc.pref_eval", verbosity)};
         return make_shared<tiebreaking_open_list::TieBreakingOpenListFactory>(
@@ -50,17 +50,21 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
 
 EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator> &h, PreferredUsage preferred_usage,
-    const vector<shared_ptr<Evaluator>> &preferred, OperatorCost cost_type,
-    int bound, double max_time, const string &description,
-    utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity),
+    const vector<shared_ptr<Evaluator>> &preferred,
+    bool lazy, bool global_closed,
+    OperatorCost cost_type, int bound, double max_time,
+    const string &description, utils::Verbosity verbosity)
+    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity), // Replaced cost_type with OperatorCost::ONE to fix the TODO
       evaluator(h),
       preferred_operator_evaluators(preferred),
       preferred_usage(preferred_usage),
+      lazy_evaluation(lazy),
+      global_closed_list(global_closed),
       current_eval_context(state_registry.get_initial_state(), &statistics),
       current_phase_start_g(-1),
       num_ehc_phases(0),
       last_num_expanded(-1) {
+
     for (const shared_ptr<Evaluator> &eval : preferred_operator_evaluators) {
         eval->get_path_dependent_evaluators(path_dependent_evaluators);
     }
@@ -70,6 +74,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     for (Evaluator *evaluator : path_dependent_evaluators) {
         evaluator->notify_initial_state(initial_state);
     }
+
     use_preferred = find(
                         preferred_operator_evaluators.begin(),
                         preferred_operator_evaluators.end(),
@@ -123,11 +128,28 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     bool preferred) {
     OperatorProxy op = task_proxy.get_operators()[op_id];
     int succ_g = parent_g + get_adjusted_cost(op);
-    const State &state = eval_context.get_state();
-    EdgeOpenListEntry entry = make_pair(state.get_id(), op_id);
-    EvaluationContext new_eval_context(
-        eval_context, succ_g, preferred, &statistics);
-    open_list->insert(new_eval_context, entry);
+    
+    const State &parent_state = eval_context.get_state();
+    StateID parent_state_id = parent_state.get_id();
+
+    EdgeOpenListEntry entry = make_pair(parent_state_id, op_id);
+
+    if (lazy_evaluation) {
+        // Lazy evaluation (original behavior)
+        EvaluationContext new_eval_context(
+            eval_context, succ_g, preferred, &statistics);
+        open_list->insert(new_eval_context, entry); // inserts parent nodes heuristic value
+    } else {
+        // Non-lazy heuristic evaluation implemented here (evaluate heuristic for successor state before inserting into open list)
+        State succ_state = state_registry.get_successor_state(parent_state, op);
+        EvaluationContext new_eval_context(succ_state, succ_g, preferred, &statistics);
+
+        // Force heuristic evaluation now
+        new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
+
+        open_list->insert(new_eval_context, entry);
+    }
+
     statistics.inc_generated_ops();
 }
 
@@ -176,11 +198,17 @@ SearchStatus EnforcedHillClimbingSearch::step() {
         return SOLVED;
     }
 
-    expand(current_eval_context);
     return ehc();
 }
 
 SearchStatus EnforcedHillClimbingSearch::ehc() {
+    if (!global_closed_list) // if uses local closed list then clear the list before each phase
+        local_closed_list.clear();
+    open_list->clear();
+
+    // Insert successors of the current state so that the open list is not empty at first if this line doesn't exist, it does not find a solution
+    expand(current_eval_context);
+
     while (!open_list->empty()) {
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
@@ -190,51 +218,71 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
         State parent_state = state_registry.lookup_state(parent_state_id);
         SearchNode parent_node = search_space.get_node(parent_state);
 
-        // d: distance from initial node in this EHC phase
+
         int d = parent_node.get_g() - current_phase_start_g +
                 get_adjusted_cost(last_op);
 
         if (parent_node.get_real_g() + last_op.get_cost() >= bound)
             continue;
 
-        State state = state_registry.get_successor_state(parent_state, last_op);
-        statistics.inc_generated();
+         State state = state_registry.get_successor_state(parent_state, last_op);
+         StateID state_id = state.get_id();
+         
+         if (dead_end_list.find(state_id) != dead_end_list.end()) // prune via the dead ends
+            continue;
 
-        SearchNode node = search_space.get_node(state);
-
-        if (node.is_new()) {
-            EvaluationContext eval_context(state, &statistics);
-            reach_state(parent_state, last_op_id, state);
-            statistics.inc_evaluated_states();
-
-            if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
-                node.mark_as_dead_end();
-                statistics.inc_dead_ends();
+        if (!global_closed_list) { // if local list
+            if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip, if not insert into local closed list
                 continue;
+            local_closed_list.insert(state_id);
+        }
+
+        statistics.inc_generated();
+        SearchNode node = search_space.get_node(state);
+        if (global_closed_list && !node.is_new())
+            continue;
+
+        EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
+        reach_state(parent_state, last_op_id, state);
+        statistics.inc_evaluated_states();
+
+        if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
+            node.mark_as_dead_end();
+            dead_end_list.insert(state_id); // insert dead end into dead end closed list
+            statistics.inc_dead_ends();
+            continue;
+        }
+
+        if (check_goal_and_set_plan(state)) { // function check_goal_and_set_plan already existed
+            // Goal reached, therefore stop immediately to avoid memory leakage (without check, code never terminates)
+            return SOLVED;
+        }
+
+        int h = eval_context.get_evaluator_value(evaluator.get());
+        node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
+
+        if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
+            ++num_ehc_phases;
+
+            if (d_counts.count(d) == 0) {
+                d_counts[d] = make_pair(0, 0);
             }
+            pair<int, int> &d_pair = d_counts[d];
+            d_pair.first += 1;
+            d_pair.second += statistics.get_expanded() - last_num_expanded;
 
-            int h = eval_context.get_evaluator_value(evaluator.get());
-            node.open_new_node(
-                parent_node, last_op, get_adjusted_cost(last_op));
-
-            if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
-                ++num_ehc_phases;
-                if (d_counts.count(d) == 0) {
-                    d_counts[d] = make_pair(0, 0);
-                }
-                pair<int, int> &d_pair = d_counts[d];
-                d_pair.first += 1;
-                d_pair.second += statistics.get_expanded() - last_num_expanded;
-
-                current_eval_context = move(eval_context);
-                open_list->clear();
-                current_phase_start_g = node.get_g();
-                return IN_PROGRESS;
-            } else {
-                expand(eval_context);
-            }
+            current_eval_context = move(eval_context);
+            open_list->clear();
+            if (!global_closed_list)
+                local_closed_list.clear();
+            current_phase_start_g = node.get_g();
+            return IN_PROGRESS;
+        } else {
+            // Only expand nodes not yet evaluated in this phase
+            expand(eval_context);
         }
     }
+
     log << "No solution - FAILED" << endl;
     return FAILED;
 }
@@ -273,6 +321,8 @@ public:
             "prune_by_preferred");
         add_list_option<shared_ptr<Evaluator>>(
             "preferred", "use preferred operators of these evaluators", "[]");
+        add_option<bool>("lazy", "use lazy heuristic evaluation", "true");
+        add_option<bool>("global_closed", "use global closed list", "true");
         add_search_algorithm_options_to_feature(*this, "ehc");
     }
 
@@ -282,6 +332,8 @@ public:
             opts.get<shared_ptr<Evaluator>>("h"),
             opts.get<PreferredUsage>("preferred_usage"),
             opts.get_list<shared_ptr<Evaluator>>("preferred"),
+            opts.get<bool>("lazy"),
+            opts.get<bool>("global_closed"),
             get_search_algorithm_arguments_from_options(opts));
     }
 };
