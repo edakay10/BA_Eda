@@ -16,6 +16,7 @@ class StateID {
     friend class PerStateBitset;
 
     public: int value; // the value is set to public so unordered set works
+    private:
     explicit StateID(int value_) : value(value_) {
     }
 

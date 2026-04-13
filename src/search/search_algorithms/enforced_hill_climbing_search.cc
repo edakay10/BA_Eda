@@ -191,25 +191,27 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
 }
 
 SearchStatus EnforcedHillClimbingSearch::step() {
+    cout << "step" << endl;
     last_num_expanded = statistics.get_expanded();
     search_progress.check_progress(current_eval_context);
 
     if (check_goal_and_set_plan(current_eval_context.get_state())) {
         return SOLVED;
     }
-
+    expand(current_eval_context);
     return ehc();
 }
 
-SearchStatus EnforcedHillClimbingSearch::ehc() {
-    if (!global_closed_list) // if uses local closed list then clear the list before each phase
-        local_closed_list.clear();
-    open_list->clear();
+SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to establish a clean phase boundary
+    // if (!global_closed_list) // if uses local closed list then clear the list before each phase
+    //     local_closed_list.clear();
+    // open_list->clear();
 
     // Insert successors of the current state so that the open list is not empty at first if this line doesn't exist, it does not find a solution
-    expand(current_eval_context);
+    // expand(current_eval_context);
 
     while (!open_list->empty()) {
+    cout << "while" << endl;
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
@@ -234,7 +236,7 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
         if (!global_closed_list) { // if local list
             if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip, if not insert into local closed list
                 continue;
-            local_closed_list.insert(state_id);
+            //local_closed_list.insert(state_id); //  premature insertion lead to no solution after duplicate removal 
         }
 
         statistics.inc_generated();
@@ -242,8 +244,13 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
         if (global_closed_list && !node.is_new())
             continue;
 
+        // Now mark as visited (after passing pruning checks)
+        if (!global_closed_list) {
+            local_closed_list.insert(state_id);
+        }
+        
         //EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
-        EvaluationContext eval_context(state, parent_node.get_g() + get_adjusted_cost(last_op), false, &statistics);
+        EvaluationContext eval_context(state, parent_node.get_g() + get_adjusted_cost(last_op), false, &statistics); // new eval context for the removal of states for the non lazy eval 
 
         if (lazy_evaluation) {
             // lazy: evaluate heuristic now
@@ -279,8 +286,8 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
             d_pair.second += statistics.get_expanded() - last_num_expanded;
 
             current_eval_context = move(eval_context);
-            open_list->clear();
-            if (!global_closed_list)
+            open_list->clear(); //open list is already cleared at the end 
+            if (!global_closed_list) // the local list doesn't need to be cleared twice
                 local_closed_list.clear();
             current_phase_start_g = node.get_g();
             return IN_PROGRESS;

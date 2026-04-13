@@ -130,6 +130,7 @@ void SearchSpace::trace_path(
     assert(current_state.get_registry() == &state_registry);
     assert(path.empty());
     for (;;) {
+        //cout << "tracing" << endl;
         const SearchNodeInfo &info = search_node_infos[current_state];
         if (info.creating_operator == OperatorID::no_operator) {
             assert(info.parent_state_id == StateID::no_state);
