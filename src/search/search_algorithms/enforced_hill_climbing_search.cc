@@ -51,7 +51,7 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
 EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator> &h, PreferredUsage preferred_usage,
     const vector<shared_ptr<Evaluator>> &preferred,
-    bool lazy, bool global_closed,
+    bool lazy, bool global_closed, bool dead_end,
     OperatorCost cost_type, int bound, double max_time,
     const string &description, utils::Verbosity verbosity)
     : SearchAlgorithm(cost_type, bound, max_time, description, verbosity), // Replaced cost_type with OperatorCost::ONE to fix the TODO
@@ -60,6 +60,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
       preferred_usage(preferred_usage),
       lazy_evaluation(lazy),
       global_closed_list(global_closed),
+      dead_end_pruning(dead_end),
       current_eval_context(state_registry.get_initial_state(), &statistics),
       current_phase_start_g(-1),
       num_ehc_phases(0),
@@ -191,7 +192,7 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
 }
 
 SearchStatus EnforcedHillClimbingSearch::step() {
-    cout << "step" << endl;
+    //cout << "step" << endl;
     last_num_expanded = statistics.get_expanded();
     search_progress.check_progress(current_eval_context);
 
@@ -211,7 +212,7 @@ SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to
     // expand(current_eval_context);
 
     while (!open_list->empty()) {
-    cout << "while" << endl;
+    //cout << "while" << endl;
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
@@ -230,8 +231,10 @@ SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to
         State state = state_registry.get_successor_state(parent_state, last_op);
         StateID state_id = state.get_id();
          
-        if (dead_end_list.find(state_id) != dead_end_list.end()) // prune via the dead ends
-            continue;
+        if (dead_end_pruning) { // if dead_end is true, then prune them 
+            if (dead_end_list.find(state_id) != dead_end_list.end()) // prune via the dead ends
+                continue;
+        }
 
         if (!global_closed_list) { // if local list
             if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip, if not insert into local closed list
@@ -262,7 +265,9 @@ SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to
 
         if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
             node.mark_as_dead_end();
-            dead_end_list.insert(state_id); // insert dead end into dead end closed list
+            if (dead_end_pruning) {
+                dead_end_list.insert(state_id); // insert dead end into dead end closed list
+            }
             statistics.inc_dead_ends();
             continue;
         }
@@ -286,8 +291,8 @@ SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to
             d_pair.second += statistics.get_expanded() - last_num_expanded;
 
             current_eval_context = move(eval_context);
-            open_list->clear(); //open list is already cleared at the end 
-            if (!global_closed_list) // the local list doesn't need to be cleared twice
+            open_list->clear(); //open list is already cleared at the end, no need to clear at the beginning
+            if (!global_closed_list)
                 local_closed_list.clear();
             current_phase_start_g = node.get_g();
             return IN_PROGRESS;
@@ -337,6 +342,7 @@ public:
             "preferred", "use preferred operators of these evaluators", "[]");
         add_option<bool>("lazy", "use lazy heuristic evaluation", "true");
         add_option<bool>("global_closed", "use global closed list", "true");
+        add_option<bool>("dead_end", "use dead-end pruning", "false"); // using dead-end pruning false by default
         add_search_algorithm_options_to_feature(*this, "ehc");
     }
 
@@ -348,6 +354,7 @@ public:
             opts.get_list<shared_ptr<Evaluator>>("preferred"),
             opts.get<bool>("lazy"),
             opts.get<bool>("global_closed"),
+            opts.get<bool>("dead_end"),
             get_search_algorithm_arguments_from_options(opts));
     }
 };

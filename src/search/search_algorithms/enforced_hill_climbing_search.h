@@ -37,6 +37,7 @@ class EnforcedHillClimbingSearch : public SearchAlgorithm {
 
     bool lazy_evaluation;
     bool global_closed_list;
+    bool dead_end_pruning;
   
     std::shared_ptr<Evaluator> evaluator;
     std::vector<std::shared_ptr<Evaluator>> preferred_operator_evaluators;
@@ -67,7 +68,7 @@ public:
     EnforcedHillClimbingSearch(
         const std::shared_ptr<Evaluator> &h, PreferredUsage preferred_usage,
         const std::vector<std::shared_ptr<Evaluator>> &preferred,
-        bool lazy, bool global_closed, // Added for the on/off toggle
+        bool lazy, bool global_closed, bool dead_end, // Added for the on/off toggle
         OperatorCost cost_type, int bound, double max_time,
         const std::string &description, utils::Verbosity verbosity); 
 
