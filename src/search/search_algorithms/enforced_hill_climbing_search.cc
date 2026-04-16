@@ -272,13 +272,15 @@ SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to
             continue;
         }
 
-        if (check_goal_and_set_plan(state)) { // function check_goal_and_set_plan already existed
-            // Goal reached, therefore stop immediately to avoid memory leakage (without check, code never terminates)
-            return SOLVED;
-        }
+        // if (check_goal_and_set_plan(state)) { // function check_goal_and_set_plan already existed
+        //     // Goal reached, therefore stop immediately to avoid memory leakage (without check, code never terminates)
+        //     return SOLVED;
+        // }
 
         int h = eval_context.get_evaluator_value(evaluator.get());
-        node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
+        if (node.is_new()) { // had to check if new here to get rid of second check_goal
+            node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
+        }
 
         if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
             ++num_ehc_phases;
