@@ -51,7 +51,7 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
 EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator> &h, PreferredUsage preferred_usage,
     const vector<shared_ptr<Evaluator>> &preferred,
-    bool lazy, bool global_closed, bool dead_end,
+    bool lazy, bool global_closed, bool dead_end, bool preferred_op,
     OperatorCost cost_type, int bound, double max_time,
     const string &description, utils::Verbosity verbosity)
     : SearchAlgorithm(cost_type, bound, max_time, description, verbosity), // Replaced cost_type with OperatorCost::ONE to fix the TODO
@@ -61,6 +61,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
       lazy_evaluation(lazy),
       global_closed_list(global_closed),
       dead_end_pruning(dead_end),
+      preferred_or_helpful(preferred_op),
       current_eval_context(state_registry.get_initial_state(), &statistics),
       current_phase_start_g(-1),
       num_ehc_phases(0),
@@ -158,7 +159,10 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     SearchNode node = search_space.get_node(eval_context.get_state());
     int node_g = node.get_g();
 
-    ordered_set::OrderedSet<OperatorID> preferred_operators;
+    vector<OperatorID> applicable_ops; // to use helpful actions
+    successor_generator.generate_applicable_ops(eval_context.get_state(), applicable_ops); // ask planner for all applicable ops in current state
+
+    ordered_set::OrderedSet<OperatorID> preferred_operators; // not just preferred ops but also relaxed plan actions (-> helpful actions)
     if (use_preferred) {
         for (const shared_ptr<Evaluator> &preferred_operator_evaluator :
              preferred_operator_evaluators) {
@@ -168,24 +172,42 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
         }
     }
 
-    if (use_preferred &&
-        preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
-        for (OperatorID op_id : preferred_operators) {
-            insert_successor_into_open_list(eval_context, node_g, op_id, true);
+    if (!preferred_or_helpful) { // too strict pruning leads to no solution being found, because if at some state, there are no preferred operators, then nothing is inserted into open (open empty -> ehc main while loop fails)
+        // only expand helpful actions
+        bool inserted = false;
+        for (OperatorID op_id : applicable_ops) {
+            if (preferred_operators.contains(op_id)) { // if the real action is also part of the relaxed plan
+                insert_successor_into_open_list(eval_context, node_g, op_id, true);
+                inserted = true;
+            }
+        }
+
+        if (!inserted) { // fallback to full expansion (all actions) if the open list is empty (no preferred operators), without this FF is incomplete
+            for (OperatorID op_id : applicable_ops) {
+                insert_successor_into_open_list(eval_context, node_g, op_id, false);
+            }
         }
     } else {
-        /* The successor ranking implied by RANK_BY_PREFERRED is done
-           by the open list. */
-        vector<OperatorID> successor_operators;
-        successor_generator.generate_applicable_ops(
-            eval_context.get_state(), successor_operators);
-        for (OperatorID op_id : successor_operators) {
-            bool preferred =
-                use_preferred && preferred_operators.contains(op_id);
-            insert_successor_into_open_list(
-                eval_context, node_g, op_id, preferred);
+
+        if (use_preferred &&
+            preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
+            for (OperatorID op_id : preferred_operators) {
+                insert_successor_into_open_list(eval_context, node_g, op_id, true);
+            }
+        } else {
+            /* The successor ranking implied by RANK_BY_PREFERRED is done
+            by the open list. */
+            vector<OperatorID> successor_operators;
+            successor_generator.generate_applicable_ops(
+                eval_context.get_state(), successor_operators);
+            for (OperatorID op_id : successor_operators) {
+                bool preferred =
+                    use_preferred && preferred_operators.contains(op_id);
+                insert_successor_into_open_list(
+                    eval_context, node_g, op_id, preferred);
+            }
         }
-    }
+    } 
 
     statistics.inc_expanded();
     node.close();
@@ -345,6 +367,7 @@ public:
         add_option<bool>("lazy", "use lazy heuristic evaluation", "true");
         add_option<bool>("global_closed", "use global closed list", "true");
         add_option<bool>("dead_end", "use dead-end pruning", "false"); // using dead-end pruning false by default
+        add_option<bool>("preferred_op", "use preferred operators", "true"); // default uses preferred op
         add_search_algorithm_options_to_feature(*this, "ehc");
     }
 
@@ -357,6 +380,7 @@ public:
             opts.get<bool>("lazy"),
             opts.get<bool>("global_closed"),
             opts.get<bool>("dead_end"),
+            opts.get<bool>("preferred_op"),
             get_search_algorithm_arguments_from_options(opts));
     }
 };
