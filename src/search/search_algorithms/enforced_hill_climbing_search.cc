@@ -54,7 +54,7 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     bool lazy, bool global_closed, bool dead_end, bool preferred_op,
     OperatorCost cost_type, int bound, double max_time,
     const string &description, utils::Verbosity verbosity)
-    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity), // Replaced cost_type with OperatorCost::ONE to fix the TODO
+    : SearchAlgorithm(cost_type, bound, max_time, description, verbosity),
       evaluator(h),
       preferred_operator_evaluators(preferred),
       preferred_usage(preferred_usage),
@@ -159,8 +159,7 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     SearchNode node = search_space.get_node(eval_context.get_state());
     int node_g = node.get_g();
 
-    vector<OperatorID> applicable_ops; // to use helpful actions
-    successor_generator.generate_applicable_ops(eval_context.get_state(), applicable_ops); // ask planner for all applicable ops in current state
+    const State &state = eval_context.get_state();
 
     ordered_set::OrderedSet<OperatorID> preferred_operators; // not just preferred ops but also relaxed plan actions (-> helpful actions)
     if (use_preferred) {
@@ -172,19 +171,74 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
         }
     }
 
-    if (!preferred_or_helpful) { // too strict pruning leads to no solution being found, because if at some state, there are no preferred operators, then nothing is inserted into open (open empty -> ehc main while loop fails)
-        // only expand helpful actions
-        bool inserted = false;
-        for (OperatorID op_id : applicable_ops) {
-            if (preferred_operators.contains(op_id)) { // if the real action is also part of the relaxed plan
-                insert_successor_into_open_list(eval_context, node_g, op_id, true);
-                inserted = true;
+    vector<OperatorID> helpful_ops;
+    vector<OperatorID> applicable_ops;
+
+    successor_generator.generate_applicable_ops(state, applicable_ops);
+
+    // build relaxed first step fact layer
+    vector<vector<bool>> fact_layer(task_proxy.get_variables().size());
+
+    for (VariableProxy var : task_proxy.get_variables()) {
+        fact_layer[var.get_id()].resize(var.get_domain_size(), false);
+    }
+
+    for (FactProxy f : state) {
+        fact_layer[f.get_variable().get_id()][f.get_value()] = true;
+    }
+
+    vector<vector<bool>> g1 = fact_layer;
+
+    // relaxed forward step (ignore delete effects)
+    for (OperatorID op_id : applicable_ops) {
+        OperatorProxy op = task_proxy.get_operators()[op_id];
+
+        bool applicable = true;
+        for (FactProxy pre : op.get_preconditions()) {
+            if (!fact_layer[pre.get_variable().get_id()][pre.get_value()]) {
+                applicable = false;
+                break;
+            }
+        }
+        if (!applicable) continue;
+
+        for (EffectProxy eff : op.get_effects()) {
+            FactPair f = eff.get_fact().get_pair();
+            g1[f.var][f.value] = true;
+        }
+    }
+
+    // helpful actions are applicable actions adding a relaxed goalrelevant fact
+    for (OperatorID op_id : applicable_ops) {
+        OperatorProxy op = task_proxy.get_operators()[op_id];
+
+        bool is_helpful = false;
+
+        for (EffectProxy eff : op.get_effects()) {
+            FactPair f = eff.get_fact().get_pair();
+
+            if (g1[f.var][f.value]) {
+                is_helpful = true;
+                break;
             }
         }
 
-        if (!inserted) { // fallback to full expansion (all actions) if the open list is empty (no preferred operators), without this FF is incomplete
+        if (is_helpful) {
+            helpful_ops.push_back(op_id);
+        }
+    }
+
+    if (!preferred_or_helpful) { 
+        if (!helpful_ops.empty()) {
+            for (OperatorID op_id : helpful_ops) {
+                bool preferred = preferred_operators.contains(op_id);
+                insert_successor_into_open_list(eval_context, node_g, op_id, preferred);
+            }
+        } else {
+            // fallback (important for completeness in practice, otherwise returns no solution found -> incomplete)
             for (OperatorID op_id : applicable_ops) {
-                insert_successor_into_open_list(eval_context, node_g, op_id, false);
+                bool preferred = preferred_operators.contains(op_id);
+                insert_successor_into_open_list(eval_context, node_g, op_id, preferred);
             }
         }
     } else {
@@ -214,7 +268,6 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
 }
 
 SearchStatus EnforcedHillClimbingSearch::step() {
-    //cout << "step" << endl;
     last_num_expanded = statistics.get_expanded();
     search_progress.check_progress(current_eval_context);
 
@@ -225,16 +278,9 @@ SearchStatus EnforcedHillClimbingSearch::step() {
     return ehc();
 }
 
-SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to establish a clean phase boundary
-    // if (!global_closed_list) // if uses local closed list then clear the list before each phase
-    //     local_closed_list.clear();
-    // open_list->clear();
-
-    // Insert successors of the current state so that the open list is not empty at first if this line doesn't exist, it does not find a solution
-    // expand(current_eval_context);
+SearchStatus EnforcedHillClimbingSearch::ehc() { 
 
     while (!open_list->empty()) {
-    //cout << "while" << endl;
         EdgeOpenListEntry entry = open_list->remove_min();
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
@@ -294,10 +340,6 @@ SearchStatus EnforcedHillClimbingSearch::ehc() { // clearing at the beginning to
             continue;
         }
 
-        // if (check_goal_and_set_plan(state)) { // function check_goal_and_set_plan already existed
-        //     // Goal reached, therefore stop immediately to avoid memory leakage (without check, code never terminates)
-        //     return SOLVED;
-        // }
 
         int h = eval_context.get_evaluator_value(evaluator.get());
         if (node.is_new()) { // had to check if new here to get rid of second check_goal
