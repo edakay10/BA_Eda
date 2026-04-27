@@ -1,0 +1,138 @@
+INFO     planner time limit: 1800s
+INFO     planner memory limit: 3584 MB
+
+INFO     Running translator.
+INFO     translator stdin: None
+INFO     translator time limit: 1799s
+INFO     translator memory limit: 3584 MB
+INFO     translator command line string: /mnt/c/Users/eda/BA_Eda/.venv/bin/python3 -m translate domain.pddl problem.pddl --sas-file output.sas
+Parsing...
+Parsing: [0.000s CPU, 0.014s wall-clock]
+Normalizing task... [0.000s CPU, 0.000s wall-clock]
+Instantiating...
+Generating Datalog program... [0.000s CPU, 0.000s wall-clock]
+Normalizing Datalog program...
+Normalizing Datalog program: [0.020s CPU, 0.051s wall-clock]
+Preparing model... [0.000s CPU, 0.001s wall-clock]
+Generated 61 rules.
+Computing model... [0.010s CPU, 0.004s wall-clock]
+181 relevant atoms
+255 auxiliary atoms
+436 final queue length
+594 total queue pushes
+Completing instantiation... [0.000s CPU, 0.003s wall-clock]
+Instantiating: [0.030s CPU, 0.060s wall-clock]
+Computing fact groups...
+Finding invariants...
+16 initial candidates
+Finding invariants: [0.000s CPU, 0.004s wall-clock]
+Checking invariant weight... [0.000s CPU, 0.000s wall-clock]
+Instantiating groups... [0.000s CPU, 0.001s wall-clock]
+Collecting mutex groups... [0.000s CPU, 0.000s wall-clock]
+Choosing groups...
+14 uncovered facts
+Choosing groups: [0.000s CPU, 0.000s wall-clock]
+Building translation key... [0.000s CPU, 0.000s wall-clock]
+Computing fact groups: [0.000s CPU, 0.005s wall-clock]
+Building STRIPS to SAS dictionary... [0.000s CPU, 0.000s wall-clock]
+Building dictionary for full mutex groups... [0.000s CPU, 0.000s wall-clock]
+Building mutex information...
+Building mutex information: [0.000s CPU, 0.000s wall-clock]
+Translating task...
+Processing axioms...
+Simplifying axioms... [0.000s CPU, 0.000s wall-clock]
+Translator axioms removed by simplifying: 0
+Processing axioms: [0.000s CPU, 0.000s wall-clock]
+Translating task: [0.000s CPU, 0.003s wall-clock]
+72 effect conditions simplified
+0 implied preconditions added
+Detecting unreachable propositions...
+0 operators removed
+0 axioms removed
+18 propositions removed
+Detecting unreachable propositions: [0.010s CPU, 0.001s wall-clock]
+Reordering and filtering variables...
+14 of 14 variables necessary.
+10 of 14 mutex groups necessary.
+72 of 72 operators necessary.
+0 of 0 axiom rules necessary.
+Reordering and filtering variables: [0.000s CPU, 0.001s wall-clock]
+Translator variables: 14
+Translator derived variables: 0
+Translator facts: 48
+Translator goal facts: 2
+Translator mutex groups: 10
+Translator total mutex groups size: 48
+Translator operators: 72
+Translator axioms: 0
+Translator task size: 622
+Translator peak memory: 30016 KB
+Writing output... [0.000s CPU, 0.004s wall-clock]
+Done! [0.040s CPU, 0.090s wall-clock]
+translate exit code: 0
+
+INFO     Running search (release).
+INFO     search stdin: output.sas
+INFO     search time limit: 300s
+INFO     search memory limit: 3584 MB
+INFO     search command line string: /mnt/c/Users/eda/BA_Eda/experiments/data/experiments-v1/code-8b0e847c94c2f563ed3a5d8ea6a8f91c04c9c173_bd874d5d/builds/release/bin/downward --search 'ehc(ff(), preferred=[ff()], lazy=true, global_closed=false, dead_end=false, preferred_op=false)' --internal-plan-file sas_plan < output.sas
+[t=0.004139s, 10036 KB] Search code revision: 8b0e847c9
+[t=0.004139s, 10036 KB] reading input...
+[t=0.005556s, 10036 KB] done reading input!
+[t=0.007662s, 10432 KB] Simplifying 240 unary operators... done! [240 unary operators]
+[t=0.007662s, 10432 KB] time to simplify: 0.000000s
+[t=0.007662s, 10432 KB] Initializing additive heuristic...
+[t=0.007662s, 10432 KB] Initializing FF heuristic...
+[t=0.007662s, 10432 KB] Simplifying 240 unary operators... done! [240 unary operators]
+[t=0.007662s, 10432 KB] time to simplify: 0.000000s
+[t=0.007662s, 10432 KB] Initializing additive heuristic...
+[t=0.007662s, 10432 KB] Initializing FF heuristic...
+[t=0.007662s, 10432 KB] Building successor generator... done!
+[t=0.007662s, 10432 KB] peak memory difference for successor generator creation: 0 KB
+[t=0.007662s, 10432 KB] time for successor generation creation: 0.000000s
+[t=0.007662s, 10432 KB] Variables: 14
+[t=0.007662s, 10432 KB] FactPairs: 48
+[t=0.007662s, 10432 KB] Bytes per state: 4
+[t=0.007662s, 10432 KB] Conducting enforced hill-climbing search, (real) bound = 2147483647
+[t=0.007662s, 10432 KB] Initial heuristic value for ff: 10
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 10
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 9
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 8
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 7
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 5
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 4
+[t=0.007662s, 10432 KB] New best heuristic value for ff: 3
+[t=0.010481s, 10432 KB] New best heuristic value for ff: 2
+[t=0.010481s, 10432 KB] New best heuristic value for ff: 1
+[t=0.010481s, 10432 KB] New best heuristic value for ff: 0
+[t=0.010481s, 10432 KB] Solution found!
+[t=0.010481s, 10432 KB] Actual search time: 0.002818s
+lift hoist0 crate1 pallet0 depot0 (1)
+load hoist0 crate1 truck1 depot0 (1)
+drive truck1 depot0 distributor0 (1)
+lift hoist1 crate0 pallet1 distributor0 (1)
+load hoist1 crate0 truck1 distributor0 (1)
+unload hoist1 crate1 truck1 distributor0 (1)
+drive truck1 distributor0 distributor1 (1)
+unload hoist2 crate0 truck1 distributor1 (1)
+drop hoist1 crate1 pallet1 distributor0 (1)
+drop hoist2 crate0 pallet2 distributor1 (1)
+[t=0.010481s, 10432 KB] Plan length: 10 step(s).
+[t=0.010481s, 10432 KB] Plan cost: 10
+[t=0.010481s, 10432 KB] Expanded 1188 state(s).
+[t=0.010481s, 10432 KB] Reopened 0 state(s).
+[t=0.010481s, 10432 KB] Evaluated 1189 state(s).
+[t=0.010481s, 10432 KB] Evaluations: 409
+[t=0.010481s, 10432 KB] Generated 1188 state(s).
+[t=0.010481s, 10432 KB] Dead ends: 0 state(s).
+[t=0.010481s, 10432 KB] EHC phases: 9
+[t=0.010481s, 10432 KB] Average expansions per EHC phase: 132.000000
+[t=0.010481s, 10432 KB] EHC phases of depth 1: 8 - Avg. Expansions: 138.750000
+[t=0.010481s, 10432 KB] EHC phases of depth 2: 1 - Avg. Expansions: 78.000000
+[t=0.010481s, 10432 KB] Search time: 0.002818s
+[t=0.010481s, 10432 KB] Total time: 0.010481s
+Solution found.
+Peak memory: 10432 KB
+Remove intermediate file output.sas
+search exit code: 0
+

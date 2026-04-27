@@ -1,0 +1,33 @@
+{
+  "algorithm": "HEAD-ehc-ff-l1-gc0-de0-po0",
+  "build_options": [
+    "release"
+  ],
+  "component_options": [
+    "--search",
+    "ehc(ff(), preferred=[ff()], lazy=true, global_closed=false, dead_end=false, preferred_op=false)"
+  ],
+  "domain": "gripper",
+  "driver_options": [
+    "--validate",
+    "--overall-time-limit",
+    "30m",
+    "--overall-memory-limit",
+    "3584M",
+    "--search-time-limit",
+    "5m",
+    "--build",
+    "release"
+  ],
+  "experiment_name": "experiments-v1",
+  "global_revision": "8b0e847c94c2f563ed3a5d8ea6a8f91c04c9c173",
+  "id": [
+    "HEAD-ehc-ff-l1-gc0-de0-po0",
+    "gripper",
+    "prob01.pddl"
+  ],
+  "local_revision": "HEAD",
+  "problem": "prob01.pddl",
+  "repo": "/mnt/c/Users/eda/BA_Eda",
+  "run_dir": "runs-00001-00100/00016"
+}
