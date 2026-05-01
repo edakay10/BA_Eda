@@ -176,31 +176,16 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
 
     successor_generator.generate_applicable_ops(state, applicable_ops);
 
-    // build relaxed first step fact layer
-    vector<vector<bool>> fact_layer(task_proxy.get_variables().size());
+    // build g1 from applicable ops
+    vector<vector<bool>> g1(task_proxy.get_variables().size());
 
     for (VariableProxy var : task_proxy.get_variables()) {
-        fact_layer[var.get_id()].resize(var.get_domain_size(), false);
+        g1[var.get_id()].resize(var.get_domain_size(), false);
     }
-
-    for (FactProxy f : state) {
-        fact_layer[f.get_variable().get_id()][f.get_value()] = true;
-    }
-
-    vector<vector<bool>> g1 = fact_layer;
 
     // relaxed forward step (ignore delete effects)
-    for (OperatorID op_id : applicable_ops) {
+    for (OperatorID op_id : applicable_ops) { // G_1(S) = facts reachable in one relaxed step
         OperatorProxy op = task_proxy.get_operators()[op_id];
-
-        bool applicable = true;
-        for (FactProxy pre : op.get_preconditions()) {
-            if (!fact_layer[pre.get_variable().get_id()][pre.get_value()]) {
-                applicable = false;
-                break;
-            }
-        }
-        if (!applicable) continue;
 
         for (EffectProxy eff : op.get_effects()) {
             FactPair f = eff.get_fact().get_pair();
@@ -208,8 +193,8 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
         }
     }
 
-    // helpful actions are applicable actions adding a relaxed goalrelevant fact
-    for (OperatorID op_id : applicable_ops) {
+    // helpful actions are preferred operators adding a G1 filter
+    for (OperatorID op_id : preferred_operators) {
         OperatorProxy op = task_proxy.get_operators()[op_id];
 
         bool is_helpful = false;
@@ -217,7 +202,7 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
         for (EffectProxy eff : op.get_effects()) {
             FactPair f = eff.get_fact().get_pair();
 
-            if (g1[f.var][f.value]) {
+            if (g1[f.var][f.value]) { // check for intersection with G_1(S) to not be empty
                 is_helpful = true;
                 break;
             }
