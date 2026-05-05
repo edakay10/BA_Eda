@@ -27,6 +27,7 @@ class FFHeuristic : public additive_heuristic::AdditiveHeuristic {
     // as a bit vector.
     using RelaxedPlan = std::vector<bool>;
     RelaxedPlan relaxed_plan;
+    bool use_helpful_actions;
     void mark_preferred_operators_and_relaxed_plan(
         const State &state, PropID goal_id);
 protected:
@@ -35,7 +36,7 @@ public:
     FFHeuristic(
         tasks::AxiomHandlingType axioms,
         const std::shared_ptr<AbstractTask> &transform, bool cache_estimates,
-        const std::string &description, utils::Verbosity verbosity);
+        const std::string &description, utils::Verbosity verbosity, bool helpful_actions); // on/off toggle opt
 };
 }
 

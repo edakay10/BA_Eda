@@ -17,18 +17,18 @@ BUILDS = ["release"]
 
 BOOLS = [True, False]
 CONFIG_NICKS = []
-for lazy, global_closed, dead_end, preferred_op in itertools.product(
+for helpful_actions, lazy, global_closed, dead_end in itertools.product(
         BOOLS, BOOLS, BOOLS, BOOLS):
 
-    nick = f"ehc-ff-l{int(lazy)}-gc{int(global_closed)}-de{int(dead_end)}-po{int(preferred_op)}"
+    nick = f"ehc-ff-l{int(lazy)}-gc{int(global_closed)}-de{int(dead_end)}-ha{int(helpful_actions)}"
 
     config = [
         "--search",
-        f"ehc(ff(), preferred=[ff()], "
+        # f"ehc(ff(), preferred=[ff()], "
+        f"ehc(ff(helpful_actions={'true' if helpful_actions else 'false'}), preferred=[ff(helpful_actions={'true' if helpful_actions else 'false'})], "
         f"lazy={'true' if lazy else 'false'}, "
         f"global_closed={'true' if global_closed else 'false'}, "
-        f"dead_end={'true' if dead_end else 'false'}, "
-        f"preferred_op={'true' if preferred_op else 'false'})"
+        f"dead_end={'true' if dead_end else 'false'})"
     ]
 
     CONFIG_NICKS.append((nick, config))

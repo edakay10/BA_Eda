@@ -11,7 +11,7 @@ from lab import tools
 
 tools.configure_logging()
 
-SHUFFLED_TASK_IDS = [16, 29, 19, 8, 15, 7, 32, 5, 27, 23, 30, 18, 28, 26, 12, 31, 2, 3, 17, 10, 22, 9, 25, 13, 21, 4, 14, 24, 6, 20, 1, 11]
+SHUFFLED_TASK_IDS = [3, 31, 28, 29, 32, 14, 5, 1, 24, 16, 15, 23, 26, 27, 21, 2, 20, 9, 25, 11, 12, 6, 22, 13, 30, 8, 7, 10, 19, 18, 17, 4]
 
 # Make sure we're in the experiment directory.
 os.chdir(os.path.dirname(os.path.abspath(__file__)))

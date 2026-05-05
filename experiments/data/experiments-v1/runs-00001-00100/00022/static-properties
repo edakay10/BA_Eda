@@ -1,11 +1,11 @@
 {
-  "algorithm": "HEAD-ehc-ff-l0-gc1-de0-po1",
+  "algorithm": "HEAD-ehc-ff-l1-gc0-de1-ha0",
   "build_options": [
     "release"
   ],
   "component_options": [
     "--search",
-    "ehc(ff(), preferred=[ff()], lazy=false, global_closed=true, dead_end=false, preferred_op=true)"
+    "ehc(ff(helpful_actions=false), preferred=[ff(helpful_actions=false)], lazy=true, global_closed=false, dead_end=true)"
   ],
   "domain": "gripper",
   "driver_options": [
@@ -20,9 +20,9 @@
     "release"
   ],
   "experiment_name": "experiments-v1",
-  "global_revision": "8b0e847c94c2f563ed3a5d8ea6a8f91c04c9c173",
+  "global_revision": "3b207bd29e1d87604d9b59c0187b7416d5bd9dbb",
   "id": [
-    "HEAD-ehc-ff-l0-gc1-de0-po1",
+    "HEAD-ehc-ff-l1-gc0-de1-ha0",
     "gripper",
     "prob01.pddl"
   ],

@@ -12,12 +12,16 @@ namespace ff_heuristic {
 // construction and destruction
 FFHeuristic::FFHeuristic(
     tasks::AxiomHandlingType axioms, const shared_ptr<AbstractTask> &transform,
-    bool cache_estimates, const string &description, utils::Verbosity verbosity)
+    bool cache_estimates, const string &description, utils::Verbosity verbosity, bool helpful_actions)
     : AdditiveHeuristic(
           axioms, transform, cache_estimates, description, verbosity),
-      relaxed_plan(task_proxy.get_operators().size(), false) {
+      relaxed_plan(task_proxy.get_operators().size(), false),
+      use_helpful_actions(helpful_actions) {
     if (log.is_at_least_normal()) {
         log << "Initializing FF heuristic..." << endl;
+        log << "Using "
+            << (helpful_actions ? "helpful actions" : "standard preferred operators")
+            << endl;
     }
 }
 
@@ -29,23 +33,65 @@ void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
         OpID op_id = goal->reached_by;
         if (op_id != NO_OP) { // We have not yet chained back to a start node.
             UnaryOperator *unary_op = get_operator(op_id);
-            bool is_preferred = true;
+
+            // First recurse (backward chaining through relaxed plan)
             for (PropID precond : get_preconditions(op_id)) {
                 mark_preferred_operators_and_relaxed_plan(state, precond);
-                if (get_proposition(precond)->reached_by != NO_OP) {
-                    is_preferred = false;
-                }
             }
+
             int operator_no = unary_op->operator_no;
+
             if (operator_no != -1) {
-                // This is not an axiom.
+                // Mark as part of relaxed plan
                 relaxed_plan[operator_no] = true;
-                if (is_preferred) {
+                if (use_helpful_actions) {
+                    /*
+                      HELPFUL ACTIONS:
+                      Action is helpful if it contributes to achieving
+                      a marked proposition (i.e. part of relaxed plan causal chain)
+                    */
+                    bool is_helpful = false;
                     OperatorProxy op = task_proxy.get_operators()[operator_no];
                     assert(task_properties::is_applicable(op, state));
-                    set_preferred(op);
-                }
-            }
+
+                    for (EffectProxy eff : op.get_effects()) {
+                        PropID eff_id = get_prop_id(eff.get_fact());
+                        if (get_proposition(eff_id)->marked) {
+                            is_helpful = true;
+                            break;
+                        }
+                    }
+
+                    if (is_helpful) {
+                        set_preferred(op);
+                    }
+
+                } else {
+                    /*
+                      Original preferred operators:
+                      operator is preferred if all preconditions are reached
+                      directly from the initial state
+                    */
+                    bool is_preferred = true;
+                    // The recursion for preconditions is already done above, so we just check the reached_by property here
+                    for (PropID precond : get_preconditions(op_id)) {
+                        // mark_preferred_operators_and_relaxed_plan(state, precond);
+                        if (get_proposition(precond)->reached_by != NO_OP) {
+                            is_preferred = false;
+                            break; // If any precondition was reached by an operator, it's not a "first layer" preferred op
+                        }
+                    } // moved to the beginning with mark_preferred_operators_and_relaxed_plan because this is needed for both helpful actions and preferred ops
+                    // int operator_no = unary_op->operator_no;
+                    // if (operator_no != -1) {
+                    //     // This is not an axiom.
+                    //     relaxed_plan[operator_no] = true;
+                    if (is_preferred) {
+                        OperatorProxy op = task_proxy.get_operators()[operator_no];
+                        assert(task_properties::is_applicable(op, state));
+                        set_preferred(op);
+                    }
+                }   
+            }   
         }
     }
 }
@@ -74,10 +120,12 @@ class FFHeuristicFeature
     : public plugins::TypedFeature<Evaluator, FFHeuristic> {
 public:
     FFHeuristicFeature() : TypedFeature("ff") {
-        document_title("FF heuristic");
+        document_title("FF heuristic with optional helpful actions");
 
         relaxation_heuristic::add_relaxation_heuristic_options_to_feature(
             *this, "ff");
+
+        add_option<bool>("helpful_actions", "Use helpful actions derived from relaxed plan", "false"); // default uses preferred_ops
 
         document_language_support("action costs", "supported");
         document_language_support("conditional effects", "supported");
@@ -93,7 +141,8 @@ public:
         const plugins::Options &opts) const override {
         return plugins::make_shared_from_arg_tuples<FFHeuristic>(
             relaxation_heuristic::
-                get_relaxation_heuristic_arguments_from_options(opts));
+                get_relaxation_heuristic_arguments_from_options(opts),
+            opts.get<bool>("helpful_actions"));
     }
 };
 

@@ -51,7 +51,7 @@ static shared_ptr<OpenListFactory> create_ehc_open_list_factory(
 EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
     const shared_ptr<Evaluator> &h, PreferredUsage preferred_usage,
     const vector<shared_ptr<Evaluator>> &preferred,
-    bool lazy, bool global_closed, bool dead_end, bool preferred_op,
+    bool lazy, bool global_closed, bool dead_end,
     OperatorCost cost_type, int bound, double max_time,
     const string &description, utils::Verbosity verbosity)
     : SearchAlgorithm(cost_type, bound, max_time, description, verbosity),
@@ -61,7 +61,6 @@ EnforcedHillClimbingSearch::EnforcedHillClimbingSearch(
       lazy_evaluation(lazy),
       global_closed_list(global_closed),
       dead_end_pruning(dead_end),
-      preferred_or_helpful(preferred_op),
       current_eval_context(state_registry.get_initial_state(), &statistics),
       current_phase_start_g(-1),
       num_ehc_phases(0),
@@ -159,9 +158,7 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     SearchNode node = search_space.get_node(eval_context.get_state());
     int node_g = node.get_g();
 
-    const State &state = eval_context.get_state();
-
-    ordered_set::OrderedSet<OperatorID> preferred_operators; // not just preferred ops but also relaxed plan actions (-> helpful actions)
+    ordered_set::OrderedSet<OperatorID> preferred_operators;
     if (use_preferred) {
         for (const shared_ptr<Evaluator> &preferred_operator_evaluator :
              preferred_operator_evaluators) {
@@ -171,82 +168,24 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
         }
     }
 
-    vector<OperatorID> helpful_ops;
-    vector<OperatorID> applicable_ops;
-
-    successor_generator.generate_applicable_ops(state, applicable_ops);
-
-    // build g1 from applicable ops
-    vector<vector<bool>> g1(task_proxy.get_variables().size());
-
-    for (VariableProxy var : task_proxy.get_variables()) {
-        g1[var.get_id()].resize(var.get_domain_size(), false);
-    }
-
-    // relaxed forward step (ignore delete effects)
-    for (OperatorID op_id : applicable_ops) { // G_1(S) = facts reachable in one relaxed step
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-
-        for (EffectProxy eff : op.get_effects()) {
-            FactPair f = eff.get_fact().get_pair();
-            g1[f.var][f.value] = true;
-        }
-    }
-
-    // helpful actions are preferred operators adding a G1 filter
-    for (OperatorID op_id : preferred_operators) {
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-
-        bool is_helpful = false;
-
-        for (EffectProxy eff : op.get_effects()) {
-            FactPair f = eff.get_fact().get_pair();
-
-            if (g1[f.var][f.value]) { // check for intersection with G_1(S) to not be empty
-                is_helpful = true;
-                break;
-            }
-        }
-
-        if (is_helpful) {
-            helpful_ops.push_back(op_id);
-        }
-    }
-
-    if (!preferred_or_helpful) { 
-        if (!helpful_ops.empty()) {
-            for (OperatorID op_id : helpful_ops) {
-                bool preferred = preferred_operators.contains(op_id);
-                insert_successor_into_open_list(eval_context, node_g, op_id, preferred);
-            }
-        } else {
-            // fallback (important for completeness in practice, otherwise returns no solution found -> incomplete)
-            for (OperatorID op_id : applicable_ops) {
-                bool preferred = preferred_operators.contains(op_id);
-                insert_successor_into_open_list(eval_context, node_g, op_id, preferred);
-            }
+    if (use_preferred &&
+        preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
+        for (OperatorID op_id : preferred_operators) {
+            insert_successor_into_open_list(eval_context, node_g, op_id, true);
         }
     } else {
-
-        if (use_preferred &&
-            preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
-            for (OperatorID op_id : preferred_operators) {
-                insert_successor_into_open_list(eval_context, node_g, op_id, true);
-            }
-        } else {
-            /* The successor ranking implied by RANK_BY_PREFERRED is done
-            by the open list. */
-            vector<OperatorID> successor_operators;
-            successor_generator.generate_applicable_ops(
-                eval_context.get_state(), successor_operators);
-            for (OperatorID op_id : successor_operators) {
-                bool preferred =
-                    use_preferred && preferred_operators.contains(op_id);
-                insert_successor_into_open_list(
-                    eval_context, node_g, op_id, preferred);
-            }
+        /* The successor ranking implied by RANK_BY_PREFERRED is done
+           by the open list. */
+        vector<OperatorID> successor_operators;
+        successor_generator.generate_applicable_ops(
+            eval_context.get_state(), successor_operators);
+        for (OperatorID op_id : successor_operators) {
+            bool preferred =
+                use_preferred && preferred_operators.contains(op_id);
+            insert_successor_into_open_list(
+                eval_context, node_g, op_id, preferred);
         }
-    } 
+    }
 
     statistics.inc_expanded();
     node.close();
@@ -394,7 +333,6 @@ public:
         add_option<bool>("lazy", "use lazy heuristic evaluation", "true");
         add_option<bool>("global_closed", "use global closed list", "true");
         add_option<bool>("dead_end", "use dead-end pruning", "false"); // using dead-end pruning false by default
-        add_option<bool>("preferred_op", "use preferred operators", "true"); // default uses preferred op
         add_search_algorithm_options_to_feature(*this, "ehc");
     }
 
@@ -407,7 +345,6 @@ public:
             opts.get<bool>("lazy"),
             opts.get<bool>("global_closed"),
             opts.get<bool>("dead_end"),
-            opts.get<bool>("preferred_op"),
             get_search_algorithm_arguments_from_options(opts));
     }
 };

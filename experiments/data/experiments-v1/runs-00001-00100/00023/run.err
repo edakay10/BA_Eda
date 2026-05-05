@@ -1,1 +1,13 @@
-Error: Trying to run validate but it was not found on the PATH.
+Traceback:
+  Start semantic analysis
+  -> Checking Plugin: ehc
+  -> Checking the keyword argument 'preferred'.
+  -> Checking list
+  -> Checking 0. element
+  -> Checking Plugin: ff
+  -> Checking the keyword argument 'helpful_actions'.
+
+Unknown keyword argument: helpful_actions
+Valid keyword arguments are: verbosity, description, cache_estimates, transform, axioms
+
+Usage error occurred.
