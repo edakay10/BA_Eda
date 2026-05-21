@@ -133,21 +133,21 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     const State &parent_state = eval_context.get_state();
     StateID parent_state_id = parent_state.get_id();
 
-    EdgeOpenListEntry entry = make_pair(parent_state_id, op_id);
-
     if (lazy_evaluation) {
         // Lazy evaluation (original behavior)
+        EdgeOpenListEntry entry = make_pair(parent_state_id, op_id);
         EvaluationContext new_eval_context(
             eval_context, succ_g, preferred, &statistics);
         open_list->insert(new_eval_context, entry); // inserts parent nodes heuristic value
     } else {
         // Non-lazy heuristic evaluation implemented here (evaluate heuristic for successor state before inserting into open list)
         State succ_state = state_registry.get_successor_state(parent_state, op);
+        StateID succ_state_id = succ_state.get_id();
+
+        EdgeOpenListEntry entry = make_pair(succ_state_id, op_id);
         EvaluationContext new_eval_context(succ_state, succ_g, preferred, &statistics);
-
-        // Force heuristic evaluation now
-        new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
-
+        // new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
+        reach_state(parent_state, op_id, succ_state); // moved here because parent is not stored in the nolazy_loop
         open_list->insert(new_eval_context, entry);
     }
 
@@ -202,12 +202,14 @@ SearchStatus EnforcedHillClimbingSearch::step() {
     return ehc();
 }
 
-SearchStatus EnforcedHillClimbingSearch::ehc() { 
+SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() { 
 
     while (!open_list->empty()) {
         EdgeOpenListEntry entry = open_list->remove_min();
+
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
+
         OperatorProxy last_op = task_proxy.get_operators()[last_op_id];
 
         State parent_state = state_registry.lookup_state(parent_state_id);
@@ -224,7 +226,7 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
         StateID state_id = state.get_id();
          
         if (dead_end_pruning) { // if dead_end is true, then prune them 
-            if (dead_end_list.find(state_id) != dead_end_list.end()) // prune via the dead ends
+            if (dead_end_list.find(state_id) != dead_end_list.end())
                 continue;
         }
 
@@ -243,17 +245,22 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
         if (!global_closed_list) {
             local_closed_list.insert(state_id);
         }
-        
-        //EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
-        EvaluationContext eval_context(state, parent_node.get_g() + get_adjusted_cost(last_op), false, &statistics); // new eval context for the removal of states for the non lazy eval 
 
-        if (lazy_evaluation) {
-            // lazy: evaluate heuristic now
-            eval_context.get_evaluator_value(evaluator.get());
-        }
-        // Non-lazy: already evaluated at insertion so we should do nothing because eval is already cached
+        // if (node.is_new()) { // was originally here but leads to no solution now
+        EvaluationContext eval_context(state, &statistics);
+        eval_context.get_evaluator_value(evaluator.get());
         reach_state(parent_state, last_op_id, state);
         statistics.inc_evaluated_states();
+        
+        //EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
+        // EvaluationContext eval_context(state, parent_node.get_g() + get_adjusted_cost(last_op), false, &statistics); // new eval context for the removal of states for the non lazy eval 
+        // if (lazy_evaluation) {
+        //     // lazy: evaluate heuristic now
+        //     eval_context.get_evaluator_value(evaluator.get());
+        // }
+        // Non-lazy: already evaluated at insertion so we should do nothing because eval is already cached
+        // reach_state(parent_state, last_op_id, state);
+        // statistics.inc_evaluated_states();
 
         if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
             node.mark_as_dead_end();
@@ -266,34 +273,130 @@ SearchStatus EnforcedHillClimbingSearch::ehc() {
 
 
         int h = eval_context.get_evaluator_value(evaluator.get());
-        if (node.is_new()) { // had to check if new here to get rid of second check_goal
+        if (node.is_new()) { // check here otherwise it never terminates
             node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
         }
+            if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
+                ++num_ehc_phases;
 
-        if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
-            ++num_ehc_phases;
+                if (d_counts.count(d) == 0) {
+                    d_counts[d] = make_pair(0, 0);
+                }
+                pair<int, int> &d_pair = d_counts[d];
+                d_pair.first += 1;
+                d_pair.second += statistics.get_expanded() - last_num_expanded;
 
-            if (d_counts.count(d) == 0) {
-                d_counts[d] = make_pair(0, 0);
+                current_eval_context = move(eval_context);
+                open_list->clear(); //open list is already cleared at the end, no need to clear at the beginning
+                if (!global_closed_list)
+                    local_closed_list.clear();
+                current_phase_start_g = node.get_g();
+                return IN_PROGRESS;
+            } else {
+                // Only expand nodes not yet evaluated in this phase
+                expand(eval_context);
             }
-            pair<int, int> &d_pair = d_counts[d];
-            d_pair.first += 1;
-            d_pair.second += statistics.get_expanded() - last_num_expanded;
-
-            current_eval_context = move(eval_context);
-            open_list->clear(); //open list is already cleared at the end, no need to clear at the beginning
-            if (!global_closed_list)
-                local_closed_list.clear();
-            current_phase_start_g = node.get_g();
-            return IN_PROGRESS;
-        } else {
-            // Only expand nodes not yet evaluated in this phase
-            expand(eval_context);
-        }
+        // }
     }
 
     log << "No solution - FAILED" << endl;
     return FAILED;
+}
+
+SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
+    while (!open_list->empty()) {
+
+        // (successor_state_id, op_id)
+        EdgeOpenListEntry entry = open_list->remove_min();
+
+        StateID state_id = entry.first; // state = succ state
+        OperatorID op_id = entry.second;
+
+        State state = state_registry.lookup_state(state_id);
+        SearchNode node = search_space.get_node(state);
+
+        OperatorProxy op = task_proxy.get_operators()[op_id];
+
+        int d = node.get_g() - current_phase_start_g +
+                get_adjusted_cost(op);
+
+        if (node.get_real_g() >= bound)
+            continue;
+
+        if (dead_end_pruning) { // if dead_end is true, then prune them 
+            if (dead_end_list.find(state_id) != dead_end_list.end())
+                continue;
+        }
+
+        if (!global_closed_list) { // if local list
+            if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip, if not insert into local closed list
+                continue;
+            //local_closed_list.insert(state_id); //  premature insertion lead to no solution after duplicate removal 
+        }
+
+        statistics.inc_generated();
+        if (global_closed_list && !node.is_new())
+            continue;
+
+        // Now mark as visited (after passing pruning checks)
+        if (!global_closed_list) {
+            local_closed_list.insert(state_id);
+        }
+
+        
+        EvaluationContext eval_context(state, node.get_g(), false, &statistics);
+        // the reach_state here is moved into insert_successor_into_open_list because it contains the parent node and this not saved here in the edge open list
+        statistics.inc_evaluated_states();
+        
+
+        if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
+            node.mark_as_dead_end();
+            if (dead_end_pruning) {
+                dead_end_list.insert(state_id); // insert dead end into dead end closed list
+            }
+            statistics.inc_dead_ends();
+            continue;
+        }
+
+        int h = eval_context.get_evaluator_value(evaluator.get());
+        // if (node.is_new()) { //checking this here leads to no solution being found when lazy=false
+        //node.open_new_node(parent_node, op, get_adjusted_cost(op)); 
+        // -> do not understand this, needs to be included in the code but needs parent_node which is not stored in this non lazy variant??
+
+            if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
+                ++num_ehc_phases;
+
+                if (d_counts.count(d) == 0) {
+                    d_counts[d] = make_pair(0, 0);
+                }
+                pair<int, int> &d_pair = d_counts[d];
+                d_pair.first += 1;
+                d_pair.second += statistics.get_expanded() - last_num_expanded;
+
+                current_eval_context = move(eval_context);
+                open_list->clear();
+
+                if (!global_closed_list)
+                    local_closed_list.clear();
+
+                current_phase_start_g = node.get_g();
+                return IN_PROGRESS;
+            } else {
+                expand(eval_context);
+            }
+        // }
+    }
+
+    log << "No solution - FAILED" << endl;
+    return FAILED;
+}
+
+SearchStatus EnforcedHillClimbingSearch::ehc() {
+    if (lazy_evaluation) {
+        return ehc_lazy_loop();
+    } else {
+        return ehc_nolazy_loop();
+    }
 }
 
 void EnforcedHillClimbingSearch::print_statistics() const {

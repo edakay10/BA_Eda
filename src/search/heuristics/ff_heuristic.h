@@ -27,7 +27,9 @@ class FFHeuristic : public additive_heuristic::AdditiveHeuristic {
     // as a bit vector.
     using RelaxedPlan = std::vector<bool>;
     RelaxedPlan relaxed_plan;
+    std::vector<bool> relaxed_plan_facts;
     bool use_helpful_actions;
+    void compute_helpful_actions(const State &state);
     void mark_preferred_operators_and_relaxed_plan(
         const State &state, PropID goal_id);
 protected:

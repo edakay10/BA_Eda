@@ -1,0 +1,1955 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>non-lazy</title>
+<meta name="generator" content="https://txt2tags.org">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<style>
+blockquote{margin: 1em 2em; border-left: 2px solid #999;
+  font-style: oblique; padding-left: 1em;}
+blockquote:first-letter{margin: .2em .1em .1em 0; font-size: 160%; font-weight: bold;}
+blockquote:first-line{font-weight: bold;}
+body{font-family: sans-serif;}
+hr{background-color:#000;border:0;color:#000;}
+hr.heavy{height:2px;}
+hr.light{height:1px;}
+img{border:0;display:block;}
+img.right{margin:0 0 0 auto;}
+img.center{border:0;margin:0 auto;}
+table{border-collapse: collapse;}
+table th,table td{padding: 3px 7px 2px 7px;}
+table th{background-color: lightgrey;}
+table.center{margin-left:auto; margin-right:auto;}
+.center{text-align:center;}
+.right{text-align:right;}
+.left{text-align:left;}
+.tableborder,.tableborder td,.tableborder th{border:1px solid #000;}
+.underline{text-decoration:underline;}
+</style>
+<style type="text/css">
+    body {
+        font-family: Ubuntu, Helvetica, Arial, sans-serif;
+    }
+    table {
+        border-collapse: collapse;
+    }
+    table th {
+        text-align: left;
+        padding-top: 5px;
+        padding-bottom: 4px;
+        background-color: #aaa;
+        color: #ffffff;
+        /* Make table headers sticky. */
+        position: sticky;
+        top: 0;
+    }
+</style>
+<script type="text/javascript">
+function toggle_element(element) {
+    if (element.style.display == "none") {
+        element.style.display = "";
+    } else {
+        element.style.display = "none";
+    }
+}
+
+function find_next(element, classname) {
+    element = element.nextSibling;
+    while(element.nodeName != classname)
+        element = element.nextSibling;
+    return element;
+}
+
+function toggle_table(toggle_button) {
+    var table = find_next(toggle_button, "TABLE");
+    toggle_element(table);
+    if (toggle_button.innerHTML == "Show table") {
+        toggle_button.innerHTML = "Hide table";
+    } else {
+        toggle_button.innerHTML = "Show table";
+    }
+}
+
+function show_table(section) {
+    heading = section.children[0];
+    var toggle_button = find_next(heading, "BUTTON");
+    var table = find_next(toggle_button, "TABLE");
+    table.style.display = "";
+    toggle_button.innerHTML = "Hide table";
+}
+
+function show_all_tables_in_section(section_id) {
+    var section = document.getElementById(section_id);
+    if (!section) return;
+
+    var tables = section.getElementsByTagName('table');
+    var buttons = section.getElementsByClassName('toggle-table');
+
+    for (var i = 0; i < tables.length; i++) {
+        tables[i].style.display = "";
+    }
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].innerHTML = "Hide table";
+    }
+}
+
+function hide_all_tables_in_section(section_id) {
+    var section = document.getElementById(section_id);
+    if (!section) return;
+
+    var tables = section.getElementsByTagName('table');
+    var buttons = section.getElementsByClassName('toggle-table');
+
+    for (var i = 0; i < tables.length; i++) {
+        tables[i].style.display = "none";
+    }
+    for (var i = 0; i < buttons.length; i++) {
+        buttons[i].innerHTML = "Show table";
+    }
+}
+
+function show_main_tables() {
+    var names = ["unexplained-errors", "info", "summary"];
+    for (var i = 0; i < names.length; i++) {
+        var section = document.getElementById(names[i]);
+        try {
+            show_table(section);
+        } catch (e) {
+            console.log("No table found for " + names[i]);
+        }
+    }
+
+    // If there is only one table, show it and hide the button.
+    var buttons = document.getElementsByTagName('button');
+    var tables = document.getElementsByTagName('table');
+    if (buttons.length == 1 && tables.length == 1) {
+        tables[0].style.display = "";
+        buttons[0].style.display = "none";
+    }
+}
+
+document.addEventListener("DOMContentLoaded", show_main_tables);
+</script>
+</head>
+<body>
+<header>
+<hgroup>
+<h1>non-lazy</h1>
+<h3>2026-05-18</h3>
+</hgroup>
+</header>
+
+
+<div class="body">
+
+<ul>
+<li><strong><a href="#unexplained-errors" onclick="show_table(document.getElementById('unexplained-errors'));">Unexplained Errors</a></strong>
+</li>
+<li><strong><a href="#info" onclick="show_table(document.getElementById('info'));">Info</a></strong>
+</li>
+<li><strong><a href="#summary" onclick="show_table(document.getElementById('summary'));">Summary</a></strong>
+</li>
+<li><strong><a href="#cost" onclick="show_table(document.getElementById('cost'));">cost</a></strong>
+  <ul>
+  <li><a href="#cost-depot" onclick="show_table(document.getElementById('cost-depot'));">depot</a> <a href="#cost-gripper" onclick="show_table(document.getElementById('cost-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#coverage" onclick="show_table(document.getElementById('coverage'));">coverage</a></strong>
+  <ul>
+  <li><a href="#coverage-depot" onclick="show_table(document.getElementById('coverage-depot'));">depot</a> <a href="#coverage-gripper" onclick="show_table(document.getElementById('coverage-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#error" onclick="show_table(document.getElementById('error'));">error</a></strong>
+  <ul>
+  <li><a href="#error-error-success" onclick="show_table(document.getElementById('error-error-success'));">error-success</a> <a href="#error-depot" onclick="show_table(document.getElementById('error-depot'));">depot</a> <a href="#error-gripper" onclick="show_table(document.getElementById('error-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#evaluations" onclick="show_table(document.getElementById('evaluations'));">evaluations</a></strong>
+  <ul>
+  <li><a href="#evaluations-depot" onclick="show_table(document.getElementById('evaluations-depot'));">depot</a> <a href="#evaluations-gripper" onclick="show_table(document.getElementById('evaluations-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#expansions" onclick="show_table(document.getElementById('expansions'));">expansions</a></strong>
+  <ul>
+  <li><a href="#expansions-depot" onclick="show_table(document.getElementById('expansions-depot'));">depot</a> <a href="#expansions-gripper" onclick="show_table(document.getElementById('expansions-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#generated" onclick="show_table(document.getElementById('generated'));">generated</a></strong>
+  <ul>
+  <li><a href="#generated-depot" onclick="show_table(document.getElementById('generated-depot'));">depot</a> <a href="#generated-gripper" onclick="show_table(document.getElementById('generated-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#initial_h_value" onclick="show_table(document.getElementById('initial_h_value'));">initial_h_value</a></strong>
+  <ul>
+  <li><a href="#initial_h_value-depot" onclick="show_table(document.getElementById('initial_h_value-depot'));">depot</a> <a href="#initial_h_value-gripper" onclick="show_table(document.getElementById('initial_h_value-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#memory" onclick="show_table(document.getElementById('memory'));">memory</a></strong>
+  <ul>
+  <li><a href="#memory-depot" onclick="show_table(document.getElementById('memory-depot'));">depot</a> <a href="#memory-gripper" onclick="show_table(document.getElementById('memory-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#planner_memory" onclick="show_table(document.getElementById('planner_memory'));">planner_memory</a></strong>
+  <ul>
+  <li><a href="#planner_memory-depot" onclick="show_table(document.getElementById('planner_memory-depot'));">depot</a> <a href="#planner_memory-gripper" onclick="show_table(document.getElementById('planner_memory-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#planner_time" onclick="show_table(document.getElementById('planner_time'));">planner_time</a></strong>
+  <ul>
+  <li><a href="#planner_time-depot" onclick="show_table(document.getElementById('planner_time-depot'));">depot</a> <a href="#planner_time-gripper" onclick="show_table(document.getElementById('planner_time-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#search_time" onclick="show_table(document.getElementById('search_time'));">search_time</a></strong>
+  <ul>
+  <li><a href="#search_time-depot" onclick="show_table(document.getElementById('search_time-depot'));">depot</a> <a href="#search_time-gripper" onclick="show_table(document.getElementById('search_time-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+<li><strong><a href="#total_time" onclick="show_table(document.getElementById('total_time'));">total_time</a></strong>
+  <ul>
+  <li><a href="#total_time-depot" onclick="show_table(document.getElementById('total_time-depot'));">depot</a> <a href="#total_time-gripper" onclick="show_table(document.getElementById('total_time-gripper'));">gripper</a>
+  </li>
+  </ul>
+</li>
+</ul>
+
+<section~A~>
+<h1></h1>
+<section id="unexplained-errors">
+<h2>unexplained-errors</h2>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+<table class="tableborder" style="display:none">
+<tr>
+<th>Unexplained errors</th> <th>algorithm</th> <th>domain</th> <th>problem</th> <th>error</th> <th>planner_wall_clock_time</th> <th>raw_memory</th> <th>node</th> <th>run_dir</th>
+</tr>
+</table>
+
+</section>
+<section id="info">
+<h2>info</h2>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>algorithm</th>
+<th>local_<wbr>revision</th>
+<th>global_<wbr>revision</th>
+<th>build_<wbr>options</th>
+<th>driver_<wbr>options</th>
+<th>component_<wbr>options</th>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc0-de0-ha0</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=false), preferred=[ff(helpful_actions=false)], lazy=false, global_closed=false, dead_end=false)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc0-de0-ha1</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=true), preferred=[ff(helpful_actions=true)], lazy=false, global_closed=false, dead_end=false)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc0-de1-ha0</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=false), preferred=[ff(helpful_actions=false)], lazy=false, global_closed=false, dead_end=true)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc0-de1-ha1</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=true), preferred=[ff(helpful_actions=true)], lazy=false, global_closed=false, dead_end=true)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc1-de0-ha0</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=false), preferred=[ff(helpful_actions=false)], lazy=false, global_closed=true, dead_end=false)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc1-de0-ha1</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=true), preferred=[ff(helpful_actions=true)], lazy=false, global_closed=true, dead_end=false)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc1-de1-ha0</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=false), preferred=[ff(helpful_actions=false)], lazy=false, global_closed=true, dead_end=true)']</td>
+</tr>
+<tr>
+<td>HEAD-ehc-ff-l0-gc1-de1-ha1</td>
+<td>HEAD</td>
+<td>29cceeda83289883cce80933c1b35b909715c9a0</td>
+<td>['release']</td>
+<td>['--validate', '--overall-time-limit', '30m', '--overall-memory-limit', '3584M', '--search-time-limit', '5m', '--build', 'release', '--validate']</td>
+<td>['--search', 'ehc(ff(helpful_actions=true), preferred=[ff(helpful_actions=true)], lazy=false, global_closed=true, dead_end=true)']</td>
+</tr>
+</table>
+
+<p>
+Used nodes: [LitFlexPad]
+</p>
+
+</section>
+<section id="summary">
+<h2>summary</h2>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>Summary</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#cost" onclick="show_table(document.getElementById('cost'));">cost - Sum</a></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+</tr>
+<tr>
+<td><a href="#coverage" onclick="show_table(document.getElementById('coverage'));">coverage - Sum</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+</tr>
+<tr>
+<td><a href="#error-error-success" onclick="show_table(document.getElementById('error-error-success'));">error-success - Sum</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+</tr>
+<tr>
+<td><a href="#evaluations" onclick="show_table(document.getElementById('evaluations'));">evaluations - Geometric mean</a></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+</tr>
+<tr>
+<td><a href="#expansions" onclick="show_table(document.getElementById('expansions'));">expansions - Geometric mean</a></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+</tr>
+<tr>
+<td><a href="#generated" onclick="show_table(document.getElementById('generated'));">generated - Geometric mean</a></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+</tr>
+<tr>
+<td><a href="#initial_h_value" onclick="show_table(document.getElementById('initial_h_value'));">initial_h_value - Finite sum</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+</tr>
+<tr>
+<td><a href="#memory" onclick="show_table(document.getElementById('memory'));">memory - Sum</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+</tr>
+<tr>
+<td><a href="#planner_memory" onclick="show_table(document.getElementById('planner_memory'));">planner_memory - Sum</a></td>
+<td class="right"><span style="color:rgb(0,6,178)">58756</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">58772</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+</tr>
+<tr>
+<td><a href="#planner_time" onclick="show_table(document.getElementById('planner_time'));">planner_time - Geometric mean</a></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.70</span></td>
+<td class="right"><span style="color:rgb(0,178,28)">0.36</span></td>
+<td class="right"><span style="color:rgb(0,178,135)">0.47</span></td>
+<td class="right"><span style="color:rgb(0,178,38)">0.37</span></td>
+<td class="right"><span style="color:rgb(0,178,164)">0.50</span></td>
+<td class="right"><span style="color:rgb(0,178,38)">0.37</span></td>
+<td class="right"><span style="color:rgb(0,178,96)">0.43</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.33</span></td>
+</tr>
+<tr>
+<td><a href="#search_time" onclick="show_table(document.getElementById('search_time'));">search_time - Geometric mean</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+</tr>
+<tr>
+<td><a href="#total_time" onclick="show_table(document.getElementById('total_time'));">total_time - Geometric mean</a></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.06</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,142)">0.03</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+</tr>
+</table>
+
+</section>
+<section id="cost">
+<h2>cost</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('cost')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('cost')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>cost</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#cost-depot" onclick="show_table(document.getElementById('cost-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+</tr>
+<tr>
+<td><a href="#cost-gripper" onclick="show_table(document.getElementById('cost-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+</tr>
+<tr>
+<td><strong>Sum (2)</strong></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">21.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">23.00</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "cost" are considered. Each table entry gives the sum of "cost" for that domain. The bottom row reports the sum across all domains.
+</p>
+
+<section id="cost-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>cost</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10.00</span></td>
+</tr>
+</table>
+
+</section>
+<section id="cost-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>cost</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">11.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">13.00</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="coverage">
+<h2>coverage</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('coverage')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('coverage')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>coverage</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#coverage-depot" onclick="show_table(document.getElementById('coverage-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+</tr>
+<tr>
+<td><a href="#coverage-gripper" onclick="show_table(document.getElementById('coverage-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+</tr>
+<tr>
+<td><strong>Sum (2)</strong></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+</tr>
+</table>
+
+<p>
+The bottom row reports the sum across all domains.
+</p>
+
+<section id="coverage-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>coverage</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+</tr>
+</table>
+
+</section>
+<section id="coverage-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>coverage</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="error">
+<h2>error</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('error')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('error')">Hide all tables</button>
+</p>
+
+<section id="error-error-success">
+<h3>error-success</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>error-success</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#error-depot" onclick="show_table(document.getElementById('error-depot'));">depot</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+</tr>
+<tr>
+<td><a href="#error-gripper" onclick="show_table(document.getElementById('error-gripper'));">gripper</a></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">1</span></td>
+</tr>
+<tr>
+<td><strong>Sum</strong></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">2</span></td>
+</tr>
+</table>
+
+</section>
+<section id="error-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>error</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+</tr>
+</table>
+
+</section>
+<section id="error-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>error</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+<td>success</td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="evaluations">
+<h2>evaluations</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('evaluations')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('evaluations')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>evaluations</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#evaluations-depot" onclick="show_table(document.getElementById('evaluations-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">495.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">495.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">495.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">495.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136.00</span></td>
+</tr>
+<tr>
+<td><a href="#evaluations-gripper" onclick="show_table(document.getElementById('evaluations-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">255.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">255.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">255.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">255.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60.00</span></td>
+</tr>
+<tr>
+<td><strong>Geometric mean (2)</strong></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">355.28</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">90.33</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "evaluations" are considered. Each table entry gives the geometric mean of "evaluations" for that domain. The bottom row reports the geometric mean across all domains.
+</p>
+
+<section id="evaluations-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>evaluations</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">495</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">495</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">495</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">495</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">136</span></td>
+</tr>
+</table>
+
+</section>
+<section id="evaluations-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>evaluations</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">255</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">255</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">255</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">255</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">60</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="expansions">
+<h2>expansions</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('expansions')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('expansions')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>expansions</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#expansions-depot" onclick="show_table(document.getElementById('expansions-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48.00</span></td>
+</tr>
+<tr>
+<td><a href="#expansions-gripper" onclick="show_table(document.getElementById('expansions-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27.00</span></td>
+</tr>
+<tr>
+<td><strong>Geometric mean (2)</strong></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">36.00</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "expansions" are considered. Each table entry gives the geometric mean of "expansions" for that domain. The bottom row reports the geometric mean across all domains.
+</p>
+
+<section id="expansions-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>expansions</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">48</span></td>
+</tr>
+</table>
+
+</section>
+<section id="expansions-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>expansions</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">27</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="generated">
+<h2>generated</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('generated')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('generated')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>generated</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#generated-depot" onclick="show_table(document.getElementById('generated-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65.00</span></td>
+</tr>
+<tr>
+<td><a href="#generated-gripper" onclick="show_table(document.getElementById('generated-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38.00</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38.00</span></td>
+</tr>
+<tr>
+<td><strong>Geometric mean (2)</strong></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1067.93</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">49.70</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "generated" are considered. Each table entry gives the geometric mean of "generated" for that domain. The bottom row reports the geometric mean across all domains.
+</p>
+
+<section id="generated-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>generated</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">1188</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">65</span></td>
+</tr>
+</table>
+
+</section>
+<section id="generated-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>generated</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">38</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="initial_h_value">
+<h2>initial_h_value</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('initial_h_value')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('initial_h_value')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>initial_<wbr>h_<wbr>value</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#initial_h_value-depot" onclick="show_table(document.getElementById('initial_h_value-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+</tr>
+<tr>
+<td><a href="#initial_h_value-gripper" onclick="show_table(document.getElementById('initial_h_value-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+</tr>
+<tr>
+<td><strong>Finite sum (2)</strong></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">19</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "initial_h_value" are considered. Each table entry gives the finite sum of "initial_h_value" for that domain. The bottom row reports the finite sum across all domains.
+</p>
+
+<section id="initial_h_value-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>initial_<wbr>h_<wbr>value</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10</span></td>
+</tr>
+</table>
+
+</section>
+<section id="initial_h_value-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>initial_<wbr>h_<wbr>value</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">9</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="memory">
+<h2>memory</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('memory')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('memory')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>memory</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#memory-depot" onclick="show_table(document.getElementById('memory-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+</tr>
+<tr>
+<td><a href="#memory-gripper" onclick="show_table(document.getElementById('memory-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+</tr>
+<tr>
+<td><strong>Sum (2)</strong></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">20868</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "memory" are considered. Each table entry gives the sum of "memory" for that domain. The bottom row reports the sum across all domains.
+</p>
+
+<section id="memory-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>memory</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10432</span></td>
+</tr>
+</table>
+
+</section>
+<section id="memory-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>memory</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">10436</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="planner_memory">
+<h2>planner_memory</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('planner_memory')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('planner_memory')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>planner_<wbr>memory</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#planner_memory-depot" onclick="show_table(document.getElementById('planner_memory-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(0,6,178)">29796</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">29812</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+</tr>
+<tr>
+<td><a href="#planner_memory-gripper" onclick="show_table(document.getElementById('planner_memory-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+</tr>
+<tr>
+<td><strong>Sum (2)</strong></td>
+<td class="right"><span style="color:rgb(0,6,178)">58756</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">58772</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">57920</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "planner_memory" are considered. Each table entry gives the sum of "planner_memory" for that domain. The bottom row reports the sum across all domains.
+</p>
+
+<section id="planner_memory-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>planner_<wbr>memory</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(0,6,178)">29796</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">29812</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">28960</span></td>
+</tr>
+</table>
+
+</section>
+<section id="planner_memory-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>planner_<wbr>memory</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">28960</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="planner_time">
+<h2>planner_time</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('planner_time')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('planner_time')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>planner_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#planner_time-depot" onclick="show_table(document.getElementById('planner_time-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(0,17,178)">0.68</span></td>
+<td class="right"><span style="color:rgb(0,178,80)">0.39</span></td>
+<td class="right"><span style="color:rgb(0,116,178)">0.57</span></td>
+<td class="right"><span style="color:rgb(0,178,53)">0.36</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.70</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.38</span></td>
+<td class="right"><span style="color:rgb(0,142,178)">0.54</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.30</span></td>
+</tr>
+<tr>
+<td><a href="#planner_time-gripper" onclick="show_table(document.getElementById('planner_time-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">0.73</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.34</span></td>
+<td class="right"><span style="color:rgb(0,178,36)">0.38</span></td>
+<td class="right"><span style="color:rgb(0,178,36)">0.38</span></td>
+<td class="right"><span style="color:rgb(0,178,18)">0.36</span></td>
+<td class="right"><span style="color:rgb(0,178,27)">0.37</span></td>
+<td class="right"><span style="color:rgb(0,178,9)">0.35</span></td>
+<td class="right"><span style="color:rgb(0,178,27)">0.37</span></td>
+</tr>
+<tr>
+<td><strong>Geometric mean (2)</strong></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.70</span></td>
+<td class="right"><span style="color:rgb(0,178,28)">0.36</span></td>
+<td class="right"><span style="color:rgb(0,178,135)">0.47</span></td>
+<td class="right"><span style="color:rgb(0,178,38)">0.37</span></td>
+<td class="right"><span style="color:rgb(0,178,164)">0.50</span></td>
+<td class="right"><span style="color:rgb(0,178,38)">0.37</span></td>
+<td class="right"><span style="color:rgb(0,178,96)">0.43</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.33</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "planner_time" are considered. Each table entry gives the geometric mean of "planner_time" for that domain. The bottom row reports the geometric mean across all domains.
+</p>
+
+<section id="planner_time-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>planner_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(0,17,178)">0.68</span></td>
+<td class="right"><span style="color:rgb(0,178,80)">0.39</span></td>
+<td class="right"><span style="color:rgb(0,116,178)">0.57</span></td>
+<td class="right"><span style="color:rgb(0,178,53)">0.36</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.70</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.38</span></td>
+<td class="right"><span style="color:rgb(0,142,178)">0.54</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.30</span></td>
+</tr>
+</table>
+
+</section>
+<section id="planner_time-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>planner_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">0.73</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.34</span></td>
+<td class="right"><span style="color:rgb(0,178,36)">0.38</span></td>
+<td class="right"><span style="color:rgb(0,178,36)">0.38</span></td>
+<td class="right"><span style="color:rgb(0,178,18)">0.36</span></td>
+<td class="right"><span style="color:rgb(0,178,27)">0.37</span></td>
+<td class="right"><span style="color:rgb(0,178,9)">0.35</span></td>
+<td class="right"><span style="color:rgb(0,178,27)">0.37</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="search_time">
+<h2>search_time</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('search_time')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('search_time')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>search_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#search_time-depot" onclick="show_table(document.getElementById('search_time-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+</tr>
+<tr>
+<td><a href="#search_time-gripper" onclick="show_table(document.getElementById('search_time-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+</tr>
+<tr>
+<td><strong>Geometric mean (2)</strong></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "search_time" are considered. Each table entry gives the geometric mean of "search_time" for that domain. The bottom row reports the geometric mean across all domains.
+</p>
+
+<section id="search_time-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>search_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+</tr>
+</table>
+
+</section>
+<section id="search_time-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>search_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+<td class="right"><span style="color:rgb(127,127,127)">0.01</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+<section id="total_time">
+<h2>total_time</h2>
+
+<p>
+<button type="button" onclick="show_all_tables_in_section('total_time')">Show all tables</button> <button type="button" onclick="hide_all_tables_in_section('total_time')">Hide all tables</button>
+</p>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>total_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td><a href="#total_time-depot" onclick="show_table(document.getElementById('total_time-depot'));">depot</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">0.05</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,89,178)">0.04</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.05</span></td>
+<td class="right"><span style="color:rgb(0,178,89)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,178)">0.03</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+</tr>
+<tr>
+<td><a href="#total_time-gripper" onclick="show_table(document.getElementById('total_time-gripper'));">gripper</a> (1)</td>
+<td class="right"><span style="color:rgb(0,0,178)">0.08</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,50)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,50)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,101)">0.03</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,101)">0.03</span></td>
+</tr>
+<tr>
+<td><strong>Geometric mean (2)</strong></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.06</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,142)">0.03</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,71)">0.02</span></td>
+</tr>
+</table>
+
+<p>
+Only tasks where all algorithms have a value for "total_time" are considered. Each table entry gives the geometric mean of "total_time" for that domain. The bottom row reports the geometric mean across all domains.
+</p>
+
+<section id="total_time-depot">
+<h3>depot</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>total_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>p01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">0.05</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,89,178)">0.04</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,0,178)">0.05</span></td>
+<td class="right"><span style="color:rgb(0,178,89)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,178)">0.03</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+</tr>
+</table>
+
+</section>
+<section id="total_time-gripper">
+<h3>gripper</h3>
+
+<button type="button" class="toggle-table" onclick="toggle_table(this)">Show table</button><p></p>
+
+<table class="tableborder" style="display:none">
+<tr>
+<th>total_<wbr>time</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc0-de1-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de0-ha1</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha0</th>
+<th>HEAD-ehc-ff-l0-gc1-de1-ha1</th>
+</tr>
+<tr>
+<td>prob01.pddl</td>
+<td class="right"><span style="color:rgb(0,0,178)">0.08</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,50)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,50)">0.02</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,101)">0.03</span></td>
+<td class="right"><span style="color:rgb(0,178,0)">0.01</span></td>
+<td class="right"><span style="color:rgb(0,178,101)">0.03</span></td>
+</tr>
+</table>
+
+</section>
+</section>
+</section>
+</div>
+</body></html>

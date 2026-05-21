@@ -17,10 +17,11 @@
     "--search-time-limit",
     "5m",
     "--build",
-    "release"
+    "release",
+    "--validate"
   ],
   "experiment_name": "experiments-v1",
-  "global_revision": "3b207bd29e1d87604d9b59c0187b7416d5bd9dbb",
+  "global_revision": "29cceeda83289883cce80933c1b35b909715c9a0",
   "id": [
     "HEAD-ehc-ff-l1-gc0-de0-ha0",
     "gripper",
@@ -28,6 +29,6 @@
   ],
   "local_revision": "HEAD",
   "problem": "prob01.pddl",
-  "repo": "/mnt/c/Users/eda/BA_Eda",
+  "repo": "/mnt/c/Users/eda/BA_Eda/",
   "run_dir": "runs-00001-00100/00024"
 }

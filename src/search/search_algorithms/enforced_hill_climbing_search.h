@@ -58,6 +58,8 @@ class EnforcedHillClimbingSearch : public SearchAlgorithm {
         bool preferred);
     void expand(EvaluationContext &eval_context);
     void reach_state(const State &parent, OperatorID op_id, const State &state);
+    SearchStatus ehc_lazy_loop();
+    SearchStatus ehc_nolazy_loop();
     SearchStatus ehc();
 
 protected:

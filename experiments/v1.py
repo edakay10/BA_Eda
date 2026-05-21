@@ -4,9 +4,11 @@ import os
 import itertools
 
 from lab.environments import LocalEnvironment, BaselSlurmEnvironment
+from lab.reports import Report
 
 import common_setup
 from common_setup import IssueConfig, IssueExperiment
+from downward.reports.absolute import AbsoluteReport
 
 # ARCHIVE_PATH = "ai/downward/TODO"
 DIR = os.path.dirname(os.path.abspath(__file__))
@@ -37,12 +39,12 @@ CONFIGS = [
         config_nick,
         config,
         build_options=[build],
-        driver_options=['--search-time-limit', '5m', "--build", build])
+        driver_options=['--search-time-limit', '5m', "--build", build,"--validate"])
     for build in BUILDS
     for config_nick, config in CONFIG_NICKS
 ]
 
-SUITE = ["miconic:s1-0.pddl"] # = common_setup.DEFAULT_OPTIMAL_SUITE
+SUITE = ["miconic:s1-0.pddl"] # = common_setup.DEFAULT_SATISFICING_SUITE
 ENVIRONMENT = BaselSlurmEnvironment(
     partition="infai_2",
     email="eda.kaynar@stud.unibas.ch",
@@ -72,7 +74,88 @@ exp.add_step('start', exp.start_runs)
 exp.add_step('parse', exp.parse)
 exp.add_fetcher(name='fetch')
 
-exp.add_absolute_report_step()
+def filter_local_closed_list(run):
+    return "-gc0-" in run["algorithm"]
+    
+def filter_global_closed_list(run):
+    return "-gc1-" in run["algorithm"]
+
+def filter_lazy(run):    
+    return "-l1-" in run["algorithm"]
+
+def filter_non_lazy(run):    
+    return "-l0-" in run["algorithm"]
+
+def filter_dead_end_pruning(run):    
+    return "-de1-" in run["algorithm"]
+
+def filter_no_dead_end_pruning(run):    
+    return "-de0-" in run["algorithm"]
+
+def filter_helpful_actions(run):    
+    return "-ha1" in run["algorithm"]
+
+def filter_preferred_ops(run):    
+    return "-ha0" in run["algorithm"]
+
+ATTRIBUTES=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+     "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+     "total_time"]
+
+first_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_local_closed_list])
+exp.add_report(first_report, outfile="local.html")
+
+second_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_global_closed_list])
+exp.add_report(second_report, outfile="global.html")
+
+third_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_lazy])
+exp.add_report(third_report, outfile="lazy.html")
+
+fourth_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_non_lazy])
+exp.add_report(fourth_report, outfile="non-lazy.html")
+
+fifth_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_dead_end_pruning])
+exp.add_report(fifth_report, outfile="dead-end.html")
+
+sixth_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_no_dead_end_pruning])
+exp.add_report(sixth_report, outfile="no-dead-end.html")
+
+seventh_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_helpful_actions])
+exp.add_report(seventh_report, outfile="helpful-actions.html")
+
+eigth_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_preferred_ops])
+exp.add_report(eigth_report, outfile="preferred-ops.html")
+
+# exp.add_absolute_report_step(name="global", filter=filter_global_closed_list, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+# exp.add_absolute_report_step(name="lazy", filter=filter_lazy, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+# exp.add_absolute_report_step(name="non-lazy", filter=filter_non_lazy, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+# exp.add_absolute_report_step(name="dead-end-pruning", filter=filter_dead_end_pruning, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+# exp.add_absolute_report_step(name="no-dead-end-pruning", filter=filter_no_dead_end_pruning, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+# exp.add_absolute_report_step(name="helpful-actions", filter=filter_helpful_actions, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+# exp.add_absolute_report_step(name="preferred-ops", filter=filter_preferred_ops, 
+# attributes=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+#      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+#      "total_time"])
+
+
 exp.add_comparison_table_step()
 exp.add_scatter_plot_step(relative=True, attributes=["total_time", "memory"])
 
