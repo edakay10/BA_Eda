@@ -144,10 +144,19 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
         State succ_state = state_registry.get_successor_state(parent_state, op);
         StateID succ_state_id = succ_state.get_id();
 
+        SearchNode parent_node = search_space.get_node(parent_state);
+        SearchNode succ_node = search_space.get_node(succ_state);
+
+        // Open the node and register the transition IF its a new state
+        if (succ_node.is_new()) {
+            succ_node.open_new_node(parent_node, op, get_adjusted_cost(op));
+            reach_state(parent_state, op_id, succ_state);
+        }
+
         EdgeOpenListEntry entry = make_pair(succ_state_id, op_id);
         EvaluationContext new_eval_context(succ_state, succ_g, preferred, &statistics);
-        // new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
-        reach_state(parent_state, op_id, succ_state); // moved here because parent is not stored in the nolazy_loop
+        new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
+        // reach_state(parent_state, op_id, succ_state);
         open_list->insert(new_eval_context, entry);
     }
 
@@ -382,9 +391,16 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
                 current_phase_start_g = node.get_g();
                 return IN_PROGRESS;
             } else {
-                expand(eval_context);
+                // expand(eval_context);
+                // but since this doesn't use expand anymore, the preferred op check in expand doesn't happen?
+                vector<OperatorID> ops;
+                successor_generator.generate_applicable_ops(state, ops); // take out state and action pair from open list 
+
+                for (OperatorID op_id : ops) { // loop over all applicable actions in s
+                    insert_successor_into_open_list(eval_context, node.get_g(), op_id, false); // insert (s',a')
+                }
             }
-        // }
+        //}
     }
 
     log << "No solution - FAILED" << endl;

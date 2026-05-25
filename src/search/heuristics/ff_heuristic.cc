@@ -46,9 +46,9 @@ void FFHeuristic::mark_preferred_operators_and_relaxed_plan(
                 // This is not an axiom.
                 relaxed_plan[operator_no] = true;
                 OperatorProxy op = task_proxy.get_operators()[operator_no];
-                for (EffectProxy eff : op.get_effects()) {
-                    PropID eff_id = get_prop_id(eff.get_fact());
-                    relaxed_plan_facts[eff_id] = true;
+                for (FactProxy pre : op.get_preconditions()) {
+                    PropID pre_id = get_prop_id(pre);
+                    relaxed_plan_facts[pre_id] = true;
                 }
 
                 if (!use_helpful_actions && is_preferred) {
