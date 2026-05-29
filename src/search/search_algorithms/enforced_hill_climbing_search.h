@@ -57,6 +57,7 @@ class EnforcedHillClimbingSearch : public SearchAlgorithm {
         const EvaluationContext &eval_context, int parent_g, OperatorID op_id,
         bool preferred);
     void expand(EvaluationContext &eval_context);
+    void expand_nolazy(EvaluationContext &eval_context);
     void reach_state(const State &parent, OperatorID op_id, const State &state);
     SearchStatus ehc_lazy_loop();
     SearchStatus ehc_nolazy_loop();

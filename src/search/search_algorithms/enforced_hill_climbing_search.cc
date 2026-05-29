@@ -129,36 +129,31 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     bool preferred) {
     OperatorProxy op = task_proxy.get_operators()[op_id];
     int succ_g = parent_g + get_adjusted_cost(op);
-    
-    const State &parent_state = eval_context.get_state();
-    StateID parent_state_id = parent_state.get_id();
+    const State &state = eval_context.get_state();
+    EdgeOpenListEntry entry = make_pair(state.get_id(), op_id);
+    EvaluationContext new_eval_context(
+        eval_context, succ_g, preferred, &statistics);
+    open_list->insert(new_eval_context, entry);
+    // } else {
+    //     // Non-lazy heuristic evaluation implemented here (evaluate heuristic for successor state before inserting into open list)
+    //     State succ_state = state_registry.get_successor_state(parent_state, op);
+    //     StateID succ_state_id = succ_state.get_id();
 
-    if (lazy_evaluation) {
-        // Lazy evaluation (original behavior)
-        EdgeOpenListEntry entry = make_pair(parent_state_id, op_id);
-        EvaluationContext new_eval_context(
-            eval_context, succ_g, preferred, &statistics);
-        open_list->insert(new_eval_context, entry); // inserts parent nodes heuristic value
-    } else {
-        // Non-lazy heuristic evaluation implemented here (evaluate heuristic for successor state before inserting into open list)
-        State succ_state = state_registry.get_successor_state(parent_state, op);
-        StateID succ_state_id = succ_state.get_id();
+    //     SearchNode parent_node = search_space.get_node(parent_state);
+    //     SearchNode succ_node = search_space.get_node(succ_state);
 
-        SearchNode parent_node = search_space.get_node(parent_state);
-        SearchNode succ_node = search_space.get_node(succ_state);
+    //     // Open the node and register the transition IF its a new state
+    //     if (succ_node.is_new()) {
+    //         succ_node.open_new_node(parent_node, op, get_adjusted_cost(op));
+    //         reach_state(parent_state, op_id, succ_state);
+    //     }
 
-        // Open the node and register the transition IF its a new state
-        if (succ_node.is_new()) {
-            succ_node.open_new_node(parent_node, op, get_adjusted_cost(op));
-            reach_state(parent_state, op_id, succ_state);
-        }
-
-        EdgeOpenListEntry entry = make_pair(succ_state_id, op_id);
-        EvaluationContext new_eval_context(succ_state, succ_g, preferred, &statistics);
-        new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
-        // reach_state(parent_state, op_id, succ_state);
-        open_list->insert(new_eval_context, entry);
-    }
+    //     EdgeOpenListEntry entry = make_pair(succ_state_id, op_id);
+    //     EvaluationContext new_eval_context(succ_state, succ_g, preferred, &statistics);
+    //     new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
+    //     // reach_state(parent_state, op_id, succ_state);
+    //     open_list->insert(new_eval_context, entry);
+    // }
 
     statistics.inc_generated_ops();
 }
@@ -200,6 +195,91 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     node.close();
 }
 
+void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) {
+    SearchNode node = search_space.get_node(eval_context.get_state());
+    int node_g = node.get_g();
+
+    ordered_set::OrderedSet<OperatorID> preferred_operators;
+    if (use_preferred) {
+        for (const shared_ptr<Evaluator> &preferred_operator_evaluator :
+             preferred_operator_evaluators) {
+            collect_preferred_operators(
+                eval_context, preferred_operator_evaluator.get(),
+                preferred_operators);
+        }
+    }
+
+    if (use_preferred &&
+        preferred_usage == PreferredUsage::PRUNE_BY_PREFERRED) {
+        for (OperatorID op_id : preferred_operators) {
+            OperatorProxy op = task_proxy.get_operators()[op_id];
+            State succ_state = state_registry.get_successor_state(eval_context.get_state(), op);
+
+            if (dead_end_pruning) {
+                if (dead_end_list.find(succ_state.get_id()) != dead_end_list.end())
+                    continue;
+            }
+
+            SearchNode succ_node = search_space.get_node(succ_state);
+            // skip non-new states being added entirely to avoid duplicate entries
+            // if (!succ_node.is_new())
+            //     continue;
+            if (succ_node.is_new()) {
+                succ_node.open_new_node(node, op, get_adjusted_cost(op));
+                reach_state(eval_context.get_state(), op_id, succ_state);
+            }
+
+            int succ_g = node_g + get_adjusted_cost(op);
+            EvaluationContext succ_eval_context(succ_state, succ_g, true, &statistics);
+            succ_eval_context.get_evaluator_value(evaluator.get());
+
+            EdgeOpenListEntry entry(succ_state.get_id(), op_id);
+
+            // not new nodes still get to the open list but get pruned later anyway, a little inconsistent
+            open_list->insert(succ_eval_context, entry);
+            statistics.inc_generated_ops();
+        }
+
+
+    } else {
+
+        vector<OperatorID> successor_operators;
+        successor_generator.generate_applicable_ops(eval_context.get_state(), successor_operators);
+
+        for (OperatorID op_id : successor_operators) {
+            bool preferred = use_preferred && preferred_operators.contains(op_id);
+            OperatorProxy op = task_proxy.get_operators()[op_id];
+            State succ_state = state_registry.get_successor_state(eval_context.get_state(), op);
+
+            if (dead_end_pruning) {
+                if (dead_end_list.find(succ_state.get_id()) != dead_end_list.end())
+                    continue;
+            }
+
+            SearchNode succ_node = search_space.get_node(succ_state);
+
+            // if (!succ_node.is_new())
+            //     continue;
+            if (succ_node.is_new()) {
+                succ_node.open_new_node(node, op, get_adjusted_cost(op));
+                reach_state(eval_context.get_state(), op_id, succ_state);
+            }
+            
+            int succ_g = node_g + get_adjusted_cost(op);
+            EvaluationContext succ_eval_context(succ_state, succ_g, preferred, &statistics);
+
+            // evaluate s'
+            succ_eval_context.get_evaluator_value(evaluator.get());
+            EdgeOpenListEntry entry(succ_state.get_id(), op_id);
+            open_list->insert(succ_eval_context,entry);
+            statistics.inc_generated_ops();
+        }
+    }
+
+    statistics.inc_expanded();
+    node.close();
+}
+
 SearchStatus EnforcedHillClimbingSearch::step() {
     last_num_expanded = statistics.get_expanded();
     search_progress.check_progress(current_eval_context);
@@ -207,23 +287,25 @@ SearchStatus EnforcedHillClimbingSearch::step() {
     if (check_goal_and_set_plan(current_eval_context.get_state())) {
         return SOLVED;
     }
-    expand(current_eval_context);
+
+    if (lazy_evaluation) {
+        expand(current_eval_context);
+    } else {
+        expand_nolazy(current_eval_context);
+    }
+    
     return ehc();
 }
 
 SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() { 
-
     while (!open_list->empty()) {
         EdgeOpenListEntry entry = open_list->remove_min();
-
         StateID parent_state_id = entry.first;
         OperatorID last_op_id = entry.second;
-
         OperatorProxy last_op = task_proxy.get_operators()[last_op_id];
 
         State parent_state = state_registry.lookup_state(parent_state_id);
         SearchNode parent_node = search_space.get_node(parent_state);
-
 
         int d = parent_node.get_g() - current_phase_start_g +
                 get_adjusted_cost(last_op);
@@ -232,62 +314,45 @@ SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() {
             continue;
         
         State state = state_registry.get_successor_state(parent_state, last_op);
+        statistics.inc_generated();
+
+        SearchNode node = search_space.get_node(state);
         StateID state_id = state.get_id();
-         
+
         if (dead_end_pruning) { // if dead_end is true, then prune them 
             if (dead_end_list.find(state_id) != dead_end_list.end())
                 continue;
         }
 
         if (!global_closed_list) { // if local list
-            if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip, if not insert into local closed list
+            if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip if not then add 
                 continue;
-            //local_closed_list.insert(state_id); //  premature insertion lead to no solution after duplicate removal 
-        }
-
-        statistics.inc_generated();
-        SearchNode node = search_space.get_node(state);
-        if (global_closed_list && !node.is_new())
-            continue;
-
-        // Now mark as visited (after passing pruning checks)
-        if (!global_closed_list) {
             local_closed_list.insert(state_id);
         }
 
-        // if (node.is_new()) { // was originally here but leads to no solution now
-        EvaluationContext eval_context(state, &statistics);
-        eval_context.get_evaluator_value(evaluator.get());
-        reach_state(parent_state, last_op_id, state);
-        statistics.inc_evaluated_states();
-        
-        //EvaluationContext eval_context(state, &statistics); // these three lines are from the original implementation that uses is_new
-        // EvaluationContext eval_context(state, parent_node.get_g() + get_adjusted_cost(last_op), false, &statistics); // new eval context for the removal of states for the non lazy eval 
-        // if (lazy_evaluation) {
-        //     // lazy: evaluate heuristic now
-        //     eval_context.get_evaluator_value(evaluator.get());
-        // }
-        // Non-lazy: already evaluated at insertion so we should do nothing because eval is already cached
-        // reach_state(parent_state, last_op_id, state);
-        // statistics.inc_evaluated_states();
-
-        if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
-            node.mark_as_dead_end();
-            if (dead_end_pruning) {
-                dead_end_list.insert(state_id); // insert dead end into dead end closed list
-            }
-            statistics.inc_dead_ends();
+        if (global_closed_list && !node.is_new())
             continue;
-        }
 
+        // if (node.is_new()) { // was originally here but leads to no solution now
+            EvaluationContext eval_context(state, &statistics);
+            reach_state(parent_state, last_op_id, state);
+            statistics.inc_evaluated_states();
 
-        int h = eval_context.get_evaluator_value(evaluator.get());
-        if (node.is_new()) { // check here otherwise it never terminates
-            node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
-        }
+            if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
+                node.mark_as_dead_end();
+                if (dead_end_pruning) {
+                    dead_end_list.insert(state_id); // insert dead end into dead end closed list
+                }
+                statistics.inc_dead_ends();
+                continue;
+            }
+
+            int h = eval_context.get_evaluator_value(evaluator.get());
+            if (node.is_new()) { // check here otherwise it never terminates
+                node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
+            }
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
                 ++num_ehc_phases;
-
                 if (d_counts.count(d) == 0) {
                     d_counts[d] = make_pair(0, 0);
                 }
@@ -296,13 +361,13 @@ SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() {
                 d_pair.second += statistics.get_expanded() - last_num_expanded;
 
                 current_eval_context = move(eval_context);
-                open_list->clear(); //open list is already cleared at the end, no need to clear at the beginning
-                if (!global_closed_list)
+                open_list->clear();
+                if (!global_closed_list) {
                     local_closed_list.clear();
+                }
                 current_phase_start_g = node.get_g();
                 return IN_PROGRESS;
             } else {
-                // Only expand nodes not yet evaluated in this phase
                 expand(eval_context);
             }
         // }
@@ -314,23 +379,20 @@ SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() {
 
 SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
     while (!open_list->empty()) {
-
         // (successor_state_id, op_id)
         EdgeOpenListEntry entry = open_list->remove_min();
-
         StateID state_id = entry.first; // state = succ state
         OperatorID op_id = entry.second;
+        OperatorProxy op = task_proxy.get_operators()[op_id];
 
         State state = state_registry.lookup_state(state_id);
         SearchNode node = search_space.get_node(state);
 
-        OperatorProxy op = task_proxy.get_operators()[op_id];
-
-        int d = node.get_g() - current_phase_start_g +
-                get_adjusted_cost(op);
+        int d = node.get_g() - current_phase_start_g;
 
         if (node.get_real_g() >= bound)
             continue;
+        statistics.inc_generated();
 
         if (dead_end_pruning) { // if dead_end is true, then prune them 
             if (dead_end_list.find(state_id) != dead_end_list.end())
@@ -340,19 +402,12 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
         if (!global_closed_list) { // if local list
             if (local_closed_list.find(state_id) != local_closed_list.end()) // if state already in local closed list then skip, if not insert into local closed list
                 continue;
-            //local_closed_list.insert(state_id); //  premature insertion lead to no solution after duplicate removal 
-        }
-
-        statistics.inc_generated();
-        if (global_closed_list && !node.is_new())
-            continue;
-
-        // Now mark as visited (after passing pruning checks)
-        if (!global_closed_list) {
             local_closed_list.insert(state_id);
         }
 
-        
+        if (global_closed_list && !node.is_new())
+            continue;
+
         EvaluationContext eval_context(state, node.get_g(), false, &statistics);
         // the reach_state here is moved into insert_successor_into_open_list because it contains the parent node and this not saved here in the edge open list
         statistics.inc_evaluated_states();
@@ -370,11 +425,9 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
         int h = eval_context.get_evaluator_value(evaluator.get());
         // if (node.is_new()) { //checking this here leads to no solution being found when lazy=false
         //node.open_new_node(parent_node, op, get_adjusted_cost(op)); 
-        // -> do not understand this, needs to be included in the code but needs parent_node which is not stored in this non lazy variant??
 
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
                 ++num_ehc_phases;
-
                 if (d_counts.count(d) == 0) {
                     d_counts[d] = make_pair(0, 0);
                 }
@@ -384,21 +437,13 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
 
                 current_eval_context = move(eval_context);
                 open_list->clear();
-
-                if (!global_closed_list)
+                if (!global_closed_list) {
                     local_closed_list.clear();
-
+                }
                 current_phase_start_g = node.get_g();
                 return IN_PROGRESS;
             } else {
-                // expand(eval_context);
-                // but since this doesn't use expand anymore, the preferred op check in expand doesn't happen?
-                vector<OperatorID> ops;
-                successor_generator.generate_applicable_ops(state, ops); // take out state and action pair from open list 
-
-                for (OperatorID op_id : ops) { // loop over all applicable actions in s
-                    insert_successor_into_open_list(eval_context, node.get_g(), op_id, false); // insert (s',a')
-                }
+                expand_nolazy(eval_context); // uses this new function for non lazy eval
             }
         //}
     }
