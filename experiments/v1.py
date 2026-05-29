@@ -44,7 +44,7 @@ CONFIGS = [
     for config_nick, config in CONFIG_NICKS
 ]
 
-SUITE = ["miconic:s1-0.pddl"] # = common_setup.DEFAULT_SATISFICING_SUITE
+SUITE = common_setup.DEFAULT_SATISFICING_SUITE #["miconic:s1-0.pddl"]
 ENVIRONMENT = BaselSlurmEnvironment(
     partition="infai_2",
     email="eda.kaynar@stud.unibas.ch",
@@ -156,6 +156,7 @@ exp.add_report(eigth_report, outfile="preferred-ops.html")
 #      "total_time"])
 
 
+# TODO: also run everything in one big summary table but generated results should be in .tex and not html format
 exp.add_comparison_table_step()
 exp.add_scatter_plot_step(relative=True, attributes=["total_time", "memory"])
 

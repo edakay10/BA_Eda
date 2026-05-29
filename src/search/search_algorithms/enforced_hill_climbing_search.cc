@@ -214,6 +214,7 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
         for (OperatorID op_id : preferred_operators) {
             OperatorProxy op = task_proxy.get_operators()[op_id];
             State succ_state = state_registry.get_successor_state(eval_context.get_state(), op);
+            statistics.inc_generated();
 
             if (dead_end_pruning) {
                 if (dead_end_list.find(succ_state.get_id()) != dead_end_list.end())
@@ -225,6 +226,7 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
             // if (!succ_node.is_new())
             //     continue;
             if (succ_node.is_new()) {
+                statistics.inc_evaluated_states();
                 succ_node.open_new_node(node, op, get_adjusted_cost(op));
                 reach_state(eval_context.get_state(), op_id, succ_state);
             }
@@ -250,6 +252,7 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
             bool preferred = use_preferred && preferred_operators.contains(op_id);
             OperatorProxy op = task_proxy.get_operators()[op_id];
             State succ_state = state_registry.get_successor_state(eval_context.get_state(), op);
+            statistics.inc_generated();
 
             if (dead_end_pruning) {
                 if (dead_end_list.find(succ_state.get_id()) != dead_end_list.end())
@@ -261,6 +264,7 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
             // if (!succ_node.is_new())
             //     continue;
             if (succ_node.is_new()) {
+                statistics.inc_evaluated_states();
                 succ_node.open_new_node(node, op, get_adjusted_cost(op));
                 reach_state(eval_context.get_state(), op_id, succ_state);
             }
@@ -336,7 +340,6 @@ SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() {
         // if (node.is_new()) { // was originally here but leads to no solution now
             EvaluationContext eval_context(state, &statistics);
             reach_state(parent_state, last_op_id, state);
-            statistics.inc_evaluated_states();
 
             if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
                 node.mark_as_dead_end();
@@ -348,7 +351,8 @@ SearchStatus EnforcedHillClimbingSearch::ehc_lazy_loop() {
             }
 
             int h = eval_context.get_evaluator_value(evaluator.get());
-            if (node.is_new()) { // check here otherwise it never terminates
+            if (node.is_new()) {
+                statistics.inc_evaluated_states(); // should be called only once per state 
                 node.open_new_node(parent_node, last_op, get_adjusted_cost(last_op));
             }
             if (h < current_eval_context.get_evaluator_value(evaluator.get())) {
@@ -392,7 +396,6 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
 
         if (node.get_real_g() >= bound)
             continue;
-        statistics.inc_generated();
 
         if (dead_end_pruning) { // if dead_end is true, then prune them 
             if (dead_end_list.find(state_id) != dead_end_list.end())
@@ -410,7 +413,6 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
 
         EvaluationContext eval_context(state, node.get_g(), false, &statistics);
         // the reach_state here is moved into insert_successor_into_open_list because it contains the parent node and this not saved here in the edge open list
-        statistics.inc_evaluated_states();
         
 
         if (eval_context.is_evaluator_value_infinite(evaluator.get())) {
