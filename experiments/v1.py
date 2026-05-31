@@ -39,7 +39,7 @@ CONFIGS = [
         config_nick,
         config,
         build_options=[build],
-        driver_options=['--search-time-limit', '5m', "--build", build,"--validate"])
+        driver_options=['--search-time-limit', '30m', "--build", build,"--validate"])
     for build in BUILDS
     for config_nick, config in CONFIG_NICKS
 ]
@@ -102,7 +102,7 @@ ATTRIBUTES=["cost", "coverage", "error", "evaluations", "expansions", "generated
      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
      "total_time"]
 
-first_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_local_closed_list])
+first_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_local_closed_list]) // If too big then add more filters here
 exp.add_report(first_report, outfile="local.html")
 
 second_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_global_closed_list])

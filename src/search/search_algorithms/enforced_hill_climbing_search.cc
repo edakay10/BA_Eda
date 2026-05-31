@@ -134,27 +134,6 @@ void EnforcedHillClimbingSearch::insert_successor_into_open_list(
     EvaluationContext new_eval_context(
         eval_context, succ_g, preferred, &statistics);
     open_list->insert(new_eval_context, entry);
-    // } else {
-    //     // Non-lazy heuristic evaluation implemented here (evaluate heuristic for successor state before inserting into open list)
-    //     State succ_state = state_registry.get_successor_state(parent_state, op);
-    //     StateID succ_state_id = succ_state.get_id();
-
-    //     SearchNode parent_node = search_space.get_node(parent_state);
-    //     SearchNode succ_node = search_space.get_node(succ_state);
-
-    //     // Open the node and register the transition IF its a new state
-    //     if (succ_node.is_new()) {
-    //         succ_node.open_new_node(parent_node, op, get_adjusted_cost(op));
-    //         reach_state(parent_state, op_id, succ_state);
-    //     }
-
-    //     EdgeOpenListEntry entry = make_pair(succ_state_id, op_id);
-    //     EvaluationContext new_eval_context(succ_state, succ_g, preferred, &statistics);
-    //     new_eval_context.get_evaluator_value(evaluator.get()); // inserts the child nodes heuristic value
-    //     // reach_state(parent_state, op_id, succ_state);
-    //     open_list->insert(new_eval_context, entry);
-    // }
-
     statistics.inc_generated_ops();
 }
 
@@ -247,13 +226,11 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
 
         vector<OperatorID> successor_operators;
         successor_generator.generate_applicable_ops(eval_context.get_state(), successor_operators);
-
         for (OperatorID op_id : successor_operators) {
             bool preferred = use_preferred && preferred_operators.contains(op_id);
             OperatorProxy op = task_proxy.get_operators()[op_id];
             State succ_state = state_registry.get_successor_state(eval_context.get_state(), op);
             statistics.inc_generated();
-
             if (dead_end_pruning) {
                 if (dead_end_list.find(succ_state.get_id()) != dead_end_list.end())
                     continue;
@@ -408,7 +385,7 @@ SearchStatus EnforcedHillClimbingSearch::ehc_nolazy_loop() {
             local_closed_list.insert(state_id);
         }
 
-        if (global_closed_list && !node.is_new())
+        if (global_closed_list && node.is_closed())
             continue;
 
         EvaluationContext eval_context(state, node.get_g(), false, &statistics);
