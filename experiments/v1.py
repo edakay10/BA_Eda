@@ -102,7 +102,7 @@ ATTRIBUTES=["cost", "coverage", "error", "evaluations", "expansions", "generated
      "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
      "total_time"]
 
-first_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_local_closed_list]) // If too big then add more filters here
+first_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_local_closed_list]) # If too big then add more filters here
 exp.add_report(first_report, outfile="local.html")
 
 second_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_global_closed_list])
