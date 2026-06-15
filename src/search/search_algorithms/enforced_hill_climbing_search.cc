@@ -171,7 +171,9 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     }
 
     statistics.inc_expanded();
-    node.close();
+    if (node.is_open()) {
+        node.close();
+    }
 }
 
 void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) {
@@ -212,8 +214,17 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
 
             int succ_g = node_g + get_adjusted_cost(op);
             EvaluationContext succ_eval_context(succ_state, succ_g, true, &statistics);
-            succ_eval_context.get_evaluator_value(evaluator.get());
 
+            if (succ_eval_context.is_evaluator_value_infinite(evaluator.get())) {
+                succ_node.mark_as_dead_end();
+                if (dead_end_pruning) {
+                    dead_end_list.insert(succ_state.get_id());
+                }
+                statistics.inc_dead_ends();
+                continue;
+            }
+
+            succ_eval_context.get_evaluator_value(evaluator.get());
             EdgeOpenListEntry entry(succ_state.get_id(), op_id);
 
             // not new nodes still get to the open list but get pruned later anyway, a little inconsistent
@@ -249,6 +260,15 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
             int succ_g = node_g + get_adjusted_cost(op);
             EvaluationContext succ_eval_context(succ_state, succ_g, preferred, &statistics);
 
+            if (succ_eval_context.is_evaluator_value_infinite(evaluator.get())) {
+                succ_node.mark_as_dead_end();
+                if (dead_end_pruning) {
+                    dead_end_list.insert(succ_state.get_id());
+                }
+                statistics.inc_dead_ends();
+                continue;
+            }
+
             // evaluate s'
             succ_eval_context.get_evaluator_value(evaluator.get());
             EdgeOpenListEntry entry(succ_state.get_id(), op_id);
@@ -258,7 +278,9 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
     }
 
     statistics.inc_expanded();
-    node.close();
+    if (node.is_open()) {
+        node.close();
+    }
 }
 
 SearchStatus EnforcedHillClimbingSearch::step() {
