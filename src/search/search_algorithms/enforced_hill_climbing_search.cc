@@ -171,9 +171,7 @@ void EnforcedHillClimbingSearch::expand(EvaluationContext &eval_context) {
     }
 
     statistics.inc_expanded();
-    if (node.is_open()) {
         node.close();
-    }
 }
 
 void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) {
@@ -278,9 +276,7 @@ void EnforcedHillClimbingSearch::expand_nolazy(EvaluationContext &eval_context) 
     }
 
     statistics.inc_expanded();
-    if (node.is_open()) {
         node.close();
-    }
 }
 
 SearchStatus EnforcedHillClimbingSearch::step() {
