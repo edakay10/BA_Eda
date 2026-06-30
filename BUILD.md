@@ -99,6 +99,11 @@ To test your build use:
 ```bash
 ./fast-downward.py misc/tests/benchmarks/miconic/s1-0.pddl --search "astar(lmcut())"
 ```
+To test your build with the additional parameters lazy, local closed list and helpful actions: 
+
+```bash
+./fast-downward.py misc/tests/benchmarks/miconic/s1-0.pddl --search "ehc(ff(helpful_actions=true), preferred=[ff(helpful_actions=true)], lazy=false, global_closed=false, dead_end=false)"
+```
 
 To test the LP support use:
 ```bash
