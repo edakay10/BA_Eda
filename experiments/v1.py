@@ -5,6 +5,7 @@ import itertools
 
 from lab.environments import LocalEnvironment, BaselSlurmEnvironment
 from lab.reports import Report
+from downward.reports.scatter import ScatterPlotReport
 
 import common_setup
 from common_setup import IssueConfig, IssueExperiment
@@ -74,6 +75,18 @@ exp.add_step('start', exp.start_runs)
 exp.add_step('parse', exp.parse)
 exp.add_fetcher(name='fetch')
 
+def add_plot(algo1, algo2, attribute, name):
+    exp.add_report(
+        ScatterPlotReport(
+            attributes=[attribute],
+            filter_algorithm=[algo1, algo2],
+            relative=False,     
+            scale="log",
+            format="png",
+        ),
+        outfile=f"{name}.png",
+    )
+
 def filter_local_closed_list(run):
     return "-gc0-" in run["algorithm"]
     
@@ -98,9 +111,16 @@ def filter_helpful_actions(run):
 def filter_preferred_ops(run):    
     return "-ha0" in run["algorithm"]
 
-ATTRIBUTES=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
-     "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
-     "total_time"]
+# ATTRIBUTES=["cost", "coverage", "error", "evaluations", "expansions", "generated", 
+    #  "initial_h_value", "memory", "planner_memory", "planner_time", "search_time" , 
+    #  "total_time"]
+
+ATTRIBUTES = [
+    "total_time",
+    "cost",
+    "expansions",
+    "coverage",
+]
 
 first_report = AbsoluteReport(attributes=ATTRIBUTES, filter=[filter_local_closed_list]) # If too big then add more filters here
 exp.add_report(first_report, outfile="local.html")
@@ -158,7 +178,37 @@ exp.add_report(eigth_report, outfile="preferred-ops.html")
 
 # TODO: also run everything in one big summary table but generated results should be in .tex and not html format
 exp.add_comparison_table_step()
-exp.add_scatter_plot_step(relative=True, attributes=["total_time", "memory"])
+# exp.add_scatter_plot_step(relative=True, attributes=["total_time", "memory"])
+
+for attribute in ATTRIBUTES:
+
+    add_plot(
+        "HEAD-ehc-ff-l1-gc1-de1-ha0",
+        "HEAD-ehc-ff-l1-gc1-de1-ha1",
+        attribute,
+        f"{attribute}-preferred-vs-helpful",
+    )
+
+    add_plot(
+        "HEAD-ehc-ff-l0-gc1-de1-ha1",
+        "HEAD-ehc-ff-l1-gc1-de1-ha1",
+        attribute,
+        f"{attribute}-nonlazy-vs-lazy",
+    )
+
+    add_plot(
+        "HEAD-ehc-ff-l1-gc0-de1-ha1",
+        "HEAD-ehc-ff-l1-gc1-de1-ha1",
+        attribute,
+        f"{attribute}-local-vs-global",
+    )
+
+    add_plot(
+        "HEAD-ehc-ff-l1-gc1-de0-ha1",
+        "HEAD-ehc-ff-l1-gc1-de1-ha1",
+        attribute,
+        f"{attribute}-nodead-vs-dead",
+    )
 
 # exp.add_archive_step(ARCHIVE_PATH)
 # exp.add_archive_eval_dir_step(ARCHIVE_PATH)
